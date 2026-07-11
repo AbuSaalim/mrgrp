@@ -10,12 +10,14 @@ const jakarta = Plus_Jakarta_Sans({
   weight: ["400", "500", "600", "700"], // Regular, Medium, SemiBold, Bold
 });
 
+
+
 export const metadata: Metadata = {
   title: "BDIT Academic",
   description: "Modern construction management software",
 };
 
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "sonner";
 
 export default function RootLayout({
   children,
@@ -32,7 +34,18 @@ export default function RootLayout({
         style={{ fontFamily: 'var(--font-jakarta)' }} // Apply directly
       >
         {children}
-        <Toaster />
+        <Toaster
+          theme="dark"
+          position="top-right"
+          richColors
+          toastOptions={{
+            style: {
+              background: "#0B1121",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              color: "#f8fafc",
+            },
+          }}
+        />
       </body>
     </html>
   );

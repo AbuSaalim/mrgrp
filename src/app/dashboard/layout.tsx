@@ -5,8 +5,9 @@ import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, Settings, ShieldCheck, Package, ShoppingCart,
-  Briefcase, FileText, IndianRupee, PenTool, Megaphone, HardHat, FileClock, Wallet, ClipboardList
+  Briefcase, FileText, IndianRupee, PenTool, Megaphone, HardHat, FileClock, Wallet, ClipboardList, CalendarDays
 } from "lucide-react";
+
 import Sidebar from "@/components/dashboard/Sidebar";
 import Header from "@/components/dashboard/Header";
 import BottomNav from "@/components/dashboard/BottomNav"; // 🚀 NEW IMPORT
@@ -51,20 +52,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // DYNAMIC MENUS
   let navItems: any[] = [];
   if (currentUser) {
-    if (currentUser.role.includes("Super") || currentUser.role.includes("Admin")) {
-      navItems = [
+    const hrItems = [
+      { name: "Overview", href: "/dashboard/hr", icon: LayoutDashboard },
+      { name: "Staff", href: "/dashboard/hr/employees", icon: Users },
+      { name: "Attendance", href: "/dashboard/hr/attendance", icon: FileClock },
+      { name: "Leaves", href: "/dashboard/hr/leaves", icon: ClipboardList },
+      { name: "Holidays", href: "/dashboard/hr/holidays", icon: CalendarDays },
+      { name: "Payroll", href: "/dashboard/hr/payroll", icon: Wallet },
+    ];
+
+    if (
+      currentUser.role === "Super Admin" ||
+      currentUser.role.includes("Super") ||
+      currentUser.role.includes("Admin")
+    ) {
+      const superAdminItems = [
         { name: "Overview", href: "/dashboard/super-admin", icon: ShieldCheck },
         { name: "Users", href: "/dashboard/super-admin/manage-users", icon: Users },
         { name: "Settings", href: "/dashboard/super-admin/settings", icon: Settings },
       ];
-    }
-    else if (currentUser.role === "HR") {
+
       navItems = [
-        { name: "Overview", href: "/dashboard/hr", icon: LayoutDashboard },
-        { name: "Staff", href: "/dashboard/hr/employees", icon: Users },
-        { name: "Attendance", href: "/dashboard/hr/attendance", icon: FileClock },
-        { name: "Leaves", href: "/dashboard/hr/leaves", icon: ClipboardList },
+        { name: "System Admin", isSection: true },
+        ...superAdminItems,
+        {
+          name: "HR Operations",
+          icon: Briefcase,
+          children: hrItems.map((item, idx) => (idx === 0 ? { ...item, name: "HR Overview" } : item)),
+        },
       ];
+    } else if (currentUser.role === "HR") {
+      navItems = hrItems;
     }
     else if (currentUser.role === "Store") {
       navItems = [
@@ -129,7 +147,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       />
 
       {/* Content Stream */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen relative z-10">
+      <div className="flex-1 flex flex-col min-w-0 h-screen relative">
         <Header
           setIsSidebarOpen={setIsSidebarOpen}
           handleLogout={handleLogout}
