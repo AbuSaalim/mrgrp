@@ -133,7 +133,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
 
       {isSidebarOpen && (
-        <div className="fixed inset-0 z-20 bg-black/60 backdrop-blur-sm lg:hidden transition-opacity" onClick={() => setIsSidebarOpen(false)} />
+        <div className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm lg:hidden transition-opacity" onClick={() => setIsSidebarOpen(false)} />
       )}
 
       {/* SIDEBAR FOR DESKTOP & MOBILE MENU */}

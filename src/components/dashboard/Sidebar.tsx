@@ -25,7 +25,7 @@ export default function Sidebar({ isOpen, isCollapsed, setIsSidebarOpen, setIsCo
   };
 
   return (
-    <aside className={`fixed inset-y-0 left-0 z-30 flex flex-col bg-white dark:bg-slate-900/40 backdrop-blur-2xl border-r border-slate-200 dark:border-white/10 transition-all duration-300 ease-in-out lg:static lg:h-screen ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"} ${isCollapsed ? "w-64 lg:w-20" : "w-64"}`}>
+    <aside className={`fixed inset-y-0 left-0 z-[100] flex flex-col bg-white dark:bg-slate-900/40 backdrop-blur-2xl border-r border-slate-200 dark:border-white/10 transition-all duration-300 ease-in-out lg:static lg:h-screen ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"} ${isCollapsed ? "w-64 lg:w-20" : "w-64"}`}>
       
       {/* User Profile Header */}
       <div className={`h-[72px] flex-shrink-0 flex items-center px-4 border-b border-slate-200 dark:border-white/5 transition-all ${isCollapsed ? "justify-center" : "justify-between"}`}>
@@ -119,6 +119,7 @@ export default function Sidebar({ isOpen, isCollapsed, setIsSidebarOpen, setIsCo
                         <Link
                           key={child.name + cIdx}
                           href={child.href}
+                          onClick={() => setIsSidebarOpen(false)}
                           className={`flex items-center px-3 py-2.5 rounded-xl transition-all duration-200 group border ${
                             isChildLinkActive
                               ? "bg-blue-50/80 dark:bg-blue-500/20 border-transparent dark:border-blue-400/20 shadow-sm"
@@ -166,6 +167,7 @@ export default function Sidebar({ isOpen, isCollapsed, setIsSidebarOpen, setIsCo
               key={item.name + idx} 
               href={item.href} 
               title={isCollapsed ? item.name : ""} 
+              onClick={() => setIsSidebarOpen(false)}
               className={`flex items-center px-3 py-3 rounded-xl transition-all duration-200 group border ${isActive ? "bg-blue-50/80 dark:bg-blue-500/20 border-transparent dark:border-blue-400/20 shadow-sm" : "border-transparent hover:bg-slate-100 dark:hover:bg-white/5"} ${isCollapsed ? "justify-center" : ""}`}
             >
               {Icon && <Icon className={`h-5 w-5 flex-shrink-0 transition-colors ${isActive ? "text-blue-700 dark:text-blue-400" : "text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white"}`} />}
