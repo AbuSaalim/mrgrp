@@ -2,6 +2,8 @@
 
 import { Menu, LogOut } from "lucide-react";
 
+import { ThemeToggle } from "@/components/ThemeToggle";
+
 interface HeaderProps {
   setIsSidebarOpen: (open: boolean) => void;
   handleLogout: () => void;
@@ -16,7 +18,8 @@ export default function Header({ setIsSidebarOpen, handleLogout, isLoggingOut }:
           <Menu className="h-6 w-6" />
         </button>
       </div>
-      <div className="flex-1 flex justify-end">
+      <div className="flex-1 flex justify-end items-center gap-4">
+        <ThemeToggle />
         <button onClick={handleLogout} disabled={isLoggingOut} className="flex items-center px-4 py-2.5 text-sm font-semibold text-red-600 dark:text-red-400 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 rounded-xl transition-all disabled:opacity-50">
           <LogOut className="h-4 w-4 mr-2" />
           {isLoggingOut ? "Logging out..." : "Logout"}

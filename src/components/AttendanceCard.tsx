@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { MapPin, Clock, CheckCircle, AlertTriangle, Fingerprint, CalendarDays } from "lucide-react";
 import CalendarModal from "./attendance/CalendarModal";
-import LeaveBalancesWidget from "./attendance/LeaveBalancesWidget";
+// import LeaveBalancesWidget from "./attendance/LeaveBalancesWidget";
 
 export default function AttendanceCard() {
   const [isLoading, setIsLoading] = useState(true);
@@ -114,9 +114,9 @@ export default function AttendanceCard() {
 
   if (isLoading) {
     return (
-      <div className="bg-slate-900/40 backdrop-blur-md border border-slate-800 rounded-2xl p-6 shadow-sm animate-pulse flex flex-col items-center justify-center h-48">
-        <div className="h-8 w-32 bg-slate-800 rounded-lg mb-4"></div>
-        <div className="h-12 w-48 bg-slate-800 rounded-full"></div>
+      <div className="bg-white dark:bg-slate-900/40 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm animate-pulse flex flex-col items-center justify-center h-48">
+        <div className="h-8 w-32 bg-slate-200 dark:bg-slate-800 rounded-lg mb-4"></div>
+        <div className="h-12 w-48 bg-slate-200 dark:bg-slate-800 rounded-full"></div>
       </div>
     );
   }
@@ -133,16 +133,16 @@ export default function AttendanceCard() {
 
   return (
     <>
-      <div className="bg-slate-900/40 backdrop-blur-md border border-slate-800 rounded-2xl p-6 md:p-8 shadow-lg relative overflow-hidden hover:bg-slate-900/60 hover:border-slate-700 transition-all duration-300">
-        <div className={`absolute -top-10 -right-10 w-32 h-32 blur-3xl rounded-full opacity-20 pointer-events-none transition-colors duration-1000 ${hasPunchedOut ? 'bg-slate-500' : hasPunchedIn ? 'bg-rose-500' : 'bg-emerald-500'}`}></div>
+      <div className="bg-white dark:bg-slate-900/40 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-sm hover:shadow-md dark:shadow-lg relative overflow-hidden hover:bg-slate-50 dark:hover:bg-slate-900/60 hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-300">
+        <div className={`absolute -top-10 -right-10 w-32 h-32 blur-3xl rounded-full opacity-20 pointer-events-none transition-colors duration-1000 ${hasPunchedOut ? 'bg-slate-400 dark:bg-slate-500' : hasPunchedIn ? 'bg-rose-400 dark:bg-rose-500' : 'bg-emerald-400 dark:bg-emerald-500'}`}></div>
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
           <div className="text-center md:text-left">
-            <h2 className="text-2xl font-bold tracking-tight text-white flex items-center justify-center md:justify-start">
+            <h2 className="text-2xl font-bold tracking-tight text-slate-800 dark:text-white flex items-center justify-center md:justify-start">
               <Clock className="mr-2 h-6 w-6 text-blue-500" />
               Daily Attendance
             </h2>
-            <p className="text-sm font-medium text-slate-400 mt-1 flex items-center justify-center md:justify-start">
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1 flex items-center justify-center md:justify-start">
               <MapPin className="mr-1 h-4 w-4" /> Device location tracking active
             </p>
           </div>
@@ -179,7 +179,7 @@ export default function AttendanceCard() {
 
             <button 
               onClick={() => setIsCalendarOpen(true)}
-              className="text-xs font-semibold text-blue-400/80 hover:text-blue-400 mt-2 flex items-center transition-colors"
+              className="text-xs font-semibold text-blue-600 dark:text-blue-400/80 hover:text-blue-700 dark:hover:text-blue-400 mt-2 flex items-center transition-colors"
             >
               🌴 Request Leave / View Calendar
             </button>
@@ -195,7 +195,7 @@ export default function AttendanceCard() {
       </div>
 
       <div className="mt-6">
-        <LeaveBalancesWidget />
+        {/* <LeaveBalancesWidget /> */}
       </div>
 
       <CalendarModal 

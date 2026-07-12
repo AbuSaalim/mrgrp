@@ -273,19 +273,19 @@ export default function PayrollDashboardPage() {
   });
 
   return (
-    <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500 pb-12 min-h-screen bg-[#0B1121] text-slate-200 p-4 sm:p-6 rounded-3xl">
+    <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500 pb-12 min-h-screen bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-100 p-4 md:p-8 font-sans selection:bg-blue-500/20">
       {/* HEADER & CONTROLS */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-900/40 backdrop-blur-xl border border-slate-800 p-5 sm:p-6 rounded-3xl shadow-lg">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white dark:bg-slate-900/40 backdrop-blur-xl border border-slate-205 dark:border-slate-800 p-5 sm:p-6 rounded-3xl shadow-sm">
         <div>
           <div className="flex items-center space-x-3">
             <div className="p-3 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20">
               <Wallet className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                 Payroll & Calculation Engine
               </h1>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1.5">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1.5 font-medium">
                 Automated shift calculations, attendance formulas & HR override management.
               </p>
             </div>
@@ -293,13 +293,13 @@ export default function PayrollDashboardPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center bg-slate-900/60 p-2 px-4 rounded-xl border border-slate-800 shadow-inner">
+          <div className="flex bg-slate-50 dark:bg-slate-900/60 p-2 px-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-inner">
             <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mr-2">Period:</label>
             <input
               type="month"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="bg-transparent text-sm font-bold text-white outline-none cursor-pointer [color-scheme:dark]"
+              className="bg-transparent text-sm font-bold text-slate-800 dark:text-white outline-none cursor-pointer [color-scheme:light] dark:[color-scheme:dark]"
             />
           </div>
 
@@ -315,7 +315,7 @@ export default function PayrollDashboardPage() {
               });
               setRateModalOpen(true);
             }}
-            className="flex items-center justify-center px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold uppercase tracking-wider shadow-[0_0_20px_rgba(37,99,235,0.3)] transition-all"
+            className="flex items-center justify-center px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold uppercase tracking-wider shadow-sm hover:shadow transition-all cursor-pointer"
           >
             <Settings className="h-4 w-4 mr-2" />
             Configure Salary Structure
@@ -324,7 +324,7 @@ export default function PayrollDashboardPage() {
           <button
             onClick={() => fetchPayrollSummary(selectedMonth)}
             disabled={loading}
-            className="flex items-center justify-center px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-bold uppercase tracking-wider border border-slate-700 hover:border-slate-600 transition-all disabled:opacity-50"
+            className="flex items-center justify-center px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white text-xs font-bold uppercase tracking-wider border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
             Recalculate
@@ -333,7 +333,7 @@ export default function PayrollDashboardPage() {
           <button
             onClick={() => handleLockPeriod()}
             disabled={summary.draftRecordsCount === 0 || loading}
-            className="flex items-center justify-center px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all disabled:opacity-50"
+            className="flex items-center justify-center px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider shadow-sm hover:shadow transition-all disabled:opacity-50 cursor-pointer"
           >
             <Lock className="h-4 w-4 mr-2" />
             Final Approval ({summary.draftRecordsCount} Drafts)
@@ -346,21 +346,21 @@ export default function PayrollDashboardPage() {
         <div
           className={`p-4 rounded-2xl flex items-center justify-between border ${
             actionMessage.type === "success"
-              ? "bg-emerald-950/80 border-emerald-500/50 text-emerald-400 backdrop-blur-md"
-              : "bg-rose-950/80 border-rose-500/50 text-rose-400 backdrop-blur-md"
+              ? "bg-emerald-50 border-emerald-300 text-emerald-800 dark:bg-emerald-950/80 dark:border-emerald-500/50 dark:text-emerald-400 backdrop-blur-md"
+              : "bg-rose-50 border-rose-300 text-rose-800 dark:bg-rose-950/80 dark:border-rose-500/50 dark:text-rose-400 backdrop-blur-md"
           }`}
         >
           <div className="flex items-center">
             {actionMessage.type === "success" ? (
-              <CheckCircle2 className="h-5 w-5 mr-2.5 text-emerald-400 flex-shrink-0" />
+              <CheckCircle2 className="h-5 w-5 mr-2.5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
             ) : (
-              <AlertCircle className="h-5 w-5 mr-2.5 text-rose-400 flex-shrink-0" />
+              <AlertCircle className="h-5 w-5 mr-2.5 text-rose-600 dark:text-rose-400 flex-shrink-0" />
             )}
             <span className="text-xs sm:text-sm font-bold tracking-wide">{actionMessage.text}</span>
           </div>
           <button
             onClick={() => setActionMessage(null)}
-            className="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
+            className="text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
           >
             Dismiss
           </button>
@@ -369,102 +369,102 @@ export default function PayrollDashboardPage() {
 
       {/* KPI METRIC CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <div className="bg-slate-900/40 backdrop-blur-xl border border-emerald-500/40 hover:bg-emerald-500/5 shadow-[0_0_15px_rgba(16,185,129,0.05)] p-5 sm:p-6 rounded-2xl transition-all duration-300 group">
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">
+        <div className="bg-white dark:bg-slate-900/40 backdrop-blur-xl border border-emerald-500/40 hover:bg-emerald-50/50 dark:hover:bg-emerald-500/5 shadow-sm dark:shadow-[0_0_15px_rgba(16,185,129,0.05)] p-5 sm:p-6 rounded-2xl transition-all duration-300 group">
+          <span className="text-[10px] font-bold text-slate-550 dark:text-slate-500 uppercase tracking-widest block mb-1.5">
             Total Enterprise Payout
           </span>
           <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               ₹{summary.totalPayrollCost.toLocaleString("en-IN")}
             </span>
-            <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
-              <IndianRupee className="h-5 w-5 text-emerald-400" />
+            <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 shadow-xs">
+              <IndianRupee className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
             </div>
           </div>
-          <span className="text-xs text-slate-400 mt-3 block">
+          <span className="text-xs text-slate-500 dark:text-slate-400 mt-3 block font-medium">
             Aggregated for {summary.totalEmployees} personnel
           </span>
         </div>
 
-        <div className="bg-slate-900/40 backdrop-blur-xl border border-blue-500/40 hover:bg-blue-500/5 shadow-[0_0_15px_rgba(59,130,246,0.05)] p-5 sm:p-6 rounded-2xl transition-all duration-300 group">
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">
+        <div className="bg-white dark:bg-slate-900/40 backdrop-blur-xl border border-blue-500/40 hover:bg-blue-50/50 dark:hover:bg-blue-500/5 shadow-sm dark:shadow-[0_0_15px_rgba(59,130,246,0.05)] p-5 sm:p-6 rounded-2xl transition-all duration-300 group">
+          <span className="text-[10px] font-bold text-slate-550 dark:text-slate-500 uppercase tracking-widest block mb-1.5">
             Total Logged Hours
           </span>
           <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               {summary.totalHoursWorked} hrs
             </span>
-            <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 shadow-[0_0_10px_rgba(59,130,246,0.2)]">
-              <Clock className="h-5 w-5 text-blue-400" />
+            <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 shadow-xs">
+              <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
-          <span className="text-xs text-slate-400 mt-3 block">
+          <span className="text-xs text-slate-500 dark:text-slate-400 mt-3 block font-medium">
             Avg Shift Formula: Hours / 9 Standard
           </span>
         </div>
 
-        <div className="bg-slate-900/40 backdrop-blur-xl border border-indigo-500/40 hover:bg-indigo-500/5 shadow-[0_0_15px_rgba(99,102,241,0.05)] p-5 sm:p-6 rounded-2xl transition-all duration-300 group">
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">
+        <div className="bg-white dark:bg-slate-900/40 backdrop-blur-xl border border-indigo-500/40 hover:bg-indigo-50/50 dark:hover:bg-indigo-500/5 shadow-sm dark:shadow-[0_0_15px_rgba(99,102,241,0.05)] p-5 sm:p-6 rounded-2xl transition-all duration-300 group">
+          <span className="text-[10px] font-bold text-slate-550 dark:text-slate-500 uppercase tracking-widest block mb-1.5">
             Avg Working Days
           </span>
           <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               {summary.avgEnterpriseWorkingDays} days
             </span>
-            <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 shadow-[0_0_10px_rgba(99,102,241,0.2)]">
-              <UserCheck className="h-5 w-5 text-indigo-400" />
+            <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 shadow-xs">
+              <UserCheck className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
             </div>
           </div>
-          <span className="text-xs text-slate-400 mt-3 block">Enterprise worker mean</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400 mt-3 block font-medium">Enterprise worker mean</span>
         </div>
 
-        <div className="bg-slate-900/40 backdrop-blur-xl border border-amber-500/40 hover:bg-amber-500/5 shadow-[0_0_15px_rgba(245,158,11,0.05)] p-5 sm:p-6 rounded-2xl transition-all duration-300 group">
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">
+        <div className="bg-white dark:bg-slate-900/40 backdrop-blur-xl border border-amber-500/40 hover:bg-amber-50/50 dark:hover:bg-amber-500/5 shadow-sm dark:shadow-[0_0_15px_rgba(245,158,11,0.05)] p-5 sm:p-6 rounded-2xl transition-all duration-300 group">
+          <span className="text-[10px] font-bold text-slate-550 dark:text-slate-500 uppercase tracking-widest block mb-1.5">
             Period Lock Status
           </span>
           <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               {summary.lockedRecordsCount} / {summary.totalEmployees}
             </span>
-            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
-              <ShieldCheck className="h-5 w-5 text-amber-400" />
+            <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 shadow-xs">
+              <ShieldCheck className="h-5 w-5 text-amber-600 dark:text-amber-400" />
             </div>
           </div>
-          <span className="text-xs text-slate-400 mt-3 block">
+          <span className="text-xs text-slate-500 dark:text-slate-400 mt-3 block font-medium">
             {summary.draftRecordsCount} remaining draft records
           </span>
         </div>
       </div>
 
       {/* PAYROLL ENGINE TABLE SECTION */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-slate-800 shadow-lg overflow-hidden">
-        <div className="p-6 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-slate-205 dark:border-slate-800 shadow-sm dark:shadow-lg overflow-hidden">
+        <div className="p-6 border-b border-slate-205 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-lg font-bold text-white tracking-wide">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-wide">
               Calculated Worker Breakdown ({selectedMonth})
             </h2>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-medium">
               Formula: (AvgWorkingDays × DailyRate) + (OvertimeHours × OTRate) − AbsentDeductions + HRAdjustments
             </p>
           </div>
 
           <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
             <input
               type="text"
               placeholder="Search worker name or email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-sm rounded-xl bg-slate-900/50 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+              className="w-full pl-10 pr-4 py-2 text-sm rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
             />
           </div>
         </div>
 
         {/* Desktop View */}
         <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-slate-800 bg-slate-950/50 text-slate-400 text-xs uppercase tracking-wider font-bold">
+              <tr className="border-b border-slate-205 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-bold">
                 <th className="py-5 px-6">Personnel</th>
                 <th className="py-5 px-4 text-center">Working Hrs</th>
                 <th className="py-5 px-4 text-center">Avg Days (Hrs/9)</th>
@@ -476,7 +476,7 @@ export default function PayrollDashboardPage() {
                 <th className="py-5 px-6 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/50 text-sm">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800/50 text-sm">
               {loading ? (
                 <tr>
                   <td colSpan={9} className="py-12 text-center text-slate-500 font-bold uppercase tracking-wider text-xs animate-pulse">
@@ -485,7 +485,7 @@ export default function PayrollDashboardPage() {
                 </tr>
               ) : filteredRecords.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-slate-500">
+                  <td colSpan={9} className="py-12 text-center text-slate-500 font-medium">
                     No payroll records found for this period.
                   </td>
                 </tr>
@@ -500,28 +500,28 @@ export default function PayrollDashboardPage() {
                   return (
                     <tr
                       key={rec._id || rec.userId}
-                      className="hover:bg-slate-800/40 transition-colors"
+                      className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors border-b border-slate-100 dark:border-slate-800/20"
                     >
                       <td className="py-4 px-6">
-                        <div className="font-bold text-white">
+                        <div className="font-bold text-slate-900 dark:text-white">
                           {rec.user?.name || "Staff Worker"}
                         </div>
-                        <div className="text-xs text-slate-400">{rec.user?.email || ""}</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">{rec.user?.email || ""}</div>
                       </td>
 
                       <td className="py-4 px-4 text-center">
-                        <div className="font-semibold text-slate-300">
+                        <div className="font-semibold text-slate-800 dark:text-slate-300">
                           {rec.totalWorkingHours} hrs
                         </div>
                         {((rec.approvedLeavesCount || 0) > 0) && (
                           <div className="mt-1.5 flex flex-col items-center gap-0.5">
                             {(rec.paidLeaveDays || 0) > 0 && (
-                              <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold border border-emerald-500/20">
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-705 dark:text-emerald-400 text-[10px] font-bold border border-emerald-250 dark:border-emerald-500/20 shadow-xs">
                                 🌴 1 Paid Leave (+9h)
                               </span>
                             )}
                             {(rec.lwpDays || 0) > 0 && (
-                              <span className="px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 text-[10px] font-bold border border-rose-500/20">
+                              <span className="px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-500/10 text-rose-705 dark:text-rose-400 text-[10px] font-bold border border-rose-250 dark:border-rose-500/20 shadow-xs">
                                 ⚠️ {rec.lwpDays} LWP Day(s)
                               </span>
                             )}
@@ -530,7 +530,7 @@ export default function PayrollDashboardPage() {
                       </td>
 
                       <td className="py-4 px-4 text-center">
-                        <span className="px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 font-bold text-xs">
+                        <span className="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 font-bold text-xs">
                           {rec.averageWorkingDays} days
                         </span>
                       </td>
@@ -538,7 +538,7 @@ export default function PayrollDashboardPage() {
                       <td className="py-4 px-4 text-center">
                         <span
                           className={`font-semibold ${
-                            rec.overtimeHours > 0 ? "text-amber-400" : "text-slate-500"
+                            rec.overtimeHours > 0 ? "text-amber-600 dark:text-amber-400 font-bold" : "text-slate-500 dark:text-slate-500"
                           }`}
                         >
                           {rec.overtimeHours} hrs
@@ -546,38 +546,38 @@ export default function PayrollDashboardPage() {
                       </td>
 
                       <td className="py-4 px-4 text-right">
-                        <div className="text-xs font-semibold text-slate-200">
+                        <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                           ₹{rec.dailyRate} / day
                         </div>
-                        <div className="text-[11px] text-slate-500">₹{rec.overtimeRate} / hr OT</div>
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400">₹{rec.overtimeRate} / hr OT</div>
                       </td>
 
                       <td className="py-4 px-4 text-right">
                         <span
                           className={`font-bold ${
                             totalAdjust > 0
-                              ? "text-emerald-400"
+                              ? "text-emerald-600 dark:text-emerald-400"
                               : totalAdjust < 0
-                              ? "text-rose-400"
-                              : "text-slate-500"
+                              ? "text-rose-600 dark:text-rose-400"
+                              : "text-slate-550 dark:text-slate-500"
                           }`}
                         >
                           {totalAdjust > 0 ? `+₹${totalAdjust}` : totalAdjust === 0 ? "₹0" : `₹${totalAdjust}`}
                         </span>
                       </td>
 
-                      <td className="py-4 px-6 text-right font-extrabold text-lg text-white">
+                      <td className="py-4 px-6 text-right font-extrabold text-lg text-slate-900 dark:text-white">
                         ₹{rec.netPayableAmount.toLocaleString("en-IN")}
                       </td>
 
                       <td className="py-4 px-4 text-center">
                         {isLocked ? (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold shadow-xs">
                             <Lock className="h-3 w-3 mr-1" />
                             Locked
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-bold shadow-xs">
                             <Unlock className="h-3 w-3 mr-1" />
                             Draft
                           </span>
@@ -596,7 +596,7 @@ export default function PayrollDashboardPage() {
                             });
                             setRateModalOpen(true);
                           }}
-                          className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 hover:border-slate-600 transition-colors animate-all"
+                          className="p-2 rounded-xl bg-slate-100 hover:bg-slate-205 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-250 dark:border-slate-700 hover:border-slate-350 dark:hover:border-slate-600 transition-colors cursor-pointer"
                           title="Configure Salary Structure"
                         >
                           <Settings className="h-4 w-4" />
@@ -608,7 +608,7 @@ export default function PayrollDashboardPage() {
                               setSelectedRecordForAdjust(rec);
                               setAdjustModalOpen(true);
                             }}
-                            className="p-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 transition-colors"
+                            className="p-2 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 transition-colors cursor-pointer"
                             title="Add Override / Bonus / Penalty"
                           >
                             <PlusCircle className="h-4 w-4" />
@@ -618,7 +618,7 @@ export default function PayrollDashboardPage() {
                         {!isLocked && (
                           <button
                             onClick={() => handleLockPeriod(rec.user?._id || rec.userId)}
-                            className="p-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-colors"
+                            className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 transition-colors cursor-pointer"
                             title="Final Approval & Lock"
                           >
                             <Lock className="h-4 w-4" />
@@ -654,22 +654,22 @@ export default function PayrollDashboardPage() {
               return (
                 <div
                   key={`mobile-${rec._id || rec.userId}`}
-                  className="bg-slate-900/40 backdrop-blur-xl border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4 shadow-[0_0_15px_rgba(0,0,0,0.1)]"
+                  className="bg-white dark:bg-slate-900/40 backdrop-blur-xl border border-slate-205 dark:border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4 shadow-sm dark:shadow-[0_0_15px_rgba(0,0,0,0.1)]"
                 >
                   {/* Personnel & Status Header */}
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-bold text-white text-base leading-snug">{rec.user?.name || "Staff Worker"}</h3>
-                      <p className="text-xs text-slate-400 mt-0.5">{rec.user?.email || ""}</p>
+                      <h3 className="font-bold text-slate-900 dark:text-white text-base leading-snug">{rec.user?.name || "Staff Worker"}</h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{rec.user?.email || ""}</p>
                     </div>
                     <div className="flex-shrink-0">
                       {isLocked ? (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] uppercase font-bold tracking-wider">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[10px] uppercase font-bold tracking-wider shadow-xs">
                           <Lock className="h-3 w-3 mr-1" />
                           Locked
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] uppercase font-bold tracking-wider">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-400 text-[10px] uppercase font-bold tracking-wider shadow-xs">
                           <Unlock className="h-3 w-3 mr-1" />
                           Draft
                         </span>
@@ -678,26 +678,26 @@ export default function PayrollDashboardPage() {
                   </div>
 
                   {/* Grid displaying Base Pay, OT, Deductions, and Net Pay */}
-                  <div className="grid grid-cols-2 gap-4 py-4 border-t border-b border-slate-800/50 text-xs">
+                  <div className="grid grid-cols-2 gap-4 py-4 border-t border-b border-slate-100 dark:border-slate-800/50 text-xs">
                     <div>
-                      <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
+                      <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">
                         Working Hours / Days
                       </span>
-                      <div className="font-semibold text-slate-300">
+                      <div className="font-semibold text-slate-800 dark:text-slate-300">
                         {rec.totalWorkingHours} hrs
                       </div>
-                      <div className="text-[10px] text-slate-400">
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400">
                         ({rec.averageWorkingDays} days)
                       </div>
                       {((rec.approvedLeavesCount || 0) > 0) && (
                         <div className="mt-2 flex flex-col gap-1 w-fit">
                           {(rec.paidLeaveDays || 0) > 0 && (
-                            <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[9px] font-bold border border-emerald-500/20">
+                            <span className="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[9px] font-bold border border-emerald-200 dark:border-emerald-500/20">
                               🌴 Paid Leave
                             </span>
                           )}
                           {(rec.lwpDays || 0) > 0 && (
-                            <span className="px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 text-[9px] font-bold border border-rose-500/20">
+                            <span className="px-2 py-0.5 rounded bg-rose-50 dark:bg-rose-500/10 text-rose-705 dark:text-rose-400 text-[9px] font-bold border border-rose-200 dark:border-rose-500/20">
                               ⚠️ {rec.lwpDays} LWP
                             </span>
                           )}
@@ -706,30 +706,30 @@ export default function PayrollDashboardPage() {
                     </div>
 
                     <div>
-                      <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
+                      <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">
                         Rates (Daily / OT)
                       </span>
-                      <div className="font-semibold text-slate-300">₹{rec.dailyRate} / day</div>
-                      <div className="text-[10px] text-slate-500">₹{rec.overtimeRate} / hr OT</div>
+                      <div className="font-semibold text-slate-800 dark:text-slate-300">₹{rec.dailyRate} / day</div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400">₹{rec.overtimeRate} / hr OT</div>
                     </div>
 
                     <div>
-                      <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
+                      <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">
                         Overtime / Adjust
                       </span>
-                      <div className="font-semibold text-slate-300">
-                        OT: <span className={rec.overtimeHours > 0 ? "text-amber-400" : "text-slate-500"}>{rec.overtimeHours} hrs</span>
+                      <div className="font-semibold text-slate-800 dark:text-slate-300">
+                        OT: <span className={rec.overtimeHours > 0 ? "text-amber-600 dark:text-amber-400 font-bold" : "text-slate-500 dark:text-slate-500"}>{rec.overtimeHours} hrs</span>
                       </div>
-                      <div className={`font-bold mt-0.5 ${totalAdjust > 0 ? "text-emerald-400" : totalAdjust < 0 ? "text-rose-400" : "text-slate-500"}`}>
+                      <div className={`font-bold mt-0.5 ${totalAdjust > 0 ? "text-emerald-600 dark:text-emerald-400" : totalAdjust < 0 ? "text-rose-600 dark:text-rose-400" : "text-slate-500 dark:text-slate-550"}`}>
                         Adj: {totalAdjust > 0 ? `+₹${totalAdjust}` : totalAdjust === 0 ? "₹0" : `₹${totalAdjust}`}
                       </div>
                     </div>
 
                     <div>
-                      <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
+                      <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">
                         Net Payable
                       </span>
-                      <span className="font-extrabold text-white text-base">
+                      <span className="font-extrabold text-slate-900 dark:text-white text-base">
                         ₹{rec.netPayableAmount.toLocaleString("en-IN")}
                       </span>
                     </div>
@@ -748,7 +748,7 @@ export default function PayrollDashboardPage() {
                         });
                         setRateModalOpen(true);
                       }}
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 py-2 px-2.5 sm:py-2.5 sm:px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 hover:border-slate-600 transition-all text-[10px] sm:text-xs font-bold uppercase tracking-wider whitespace-nowrap"
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 py-2 px-2.5 sm:py-2.5 sm:px-3.5 rounded-xl bg-slate-100 hover:bg-slate-205 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-250 dark:border-slate-700 hover:border-slate-350 dark:hover:border-slate-600 transition-all text-[10px] sm:text-xs font-bold uppercase tracking-wider whitespace-nowrap cursor-pointer"
                       title="Configure Salary Structure"
                     >
                       <Settings className="h-3.5 w-3.5 flex-shrink-0" /> Structure
@@ -760,7 +760,7 @@ export default function PayrollDashboardPage() {
                           setSelectedRecordForAdjust(rec);
                           setAdjustModalOpen(true);
                         }}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 py-2 px-2.5 sm:py-2.5 sm:px-3.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 transition-all text-[10px] sm:text-xs font-bold uppercase tracking-wider whitespace-nowrap"
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 py-2 px-2.5 sm:py-2.5 sm:px-3.5 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 transition-all text-[10px] sm:text-xs font-bold uppercase tracking-wider whitespace-nowrap cursor-pointer"
                         title="Add Override / Bonus / Penalty"
                       >
                         <PlusCircle className="h-3.5 w-3.5 flex-shrink-0" /> Adjust
@@ -770,7 +770,7 @@ export default function PayrollDashboardPage() {
                     {!isLocked && (
                       <button
                         onClick={() => handleLockPeriod(rec.user?._id || rec.userId)}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 py-2 px-2.5 sm:py-2.5 sm:px-3.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-all text-[10px] sm:text-xs font-bold uppercase tracking-wider whitespace-nowrap"
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 py-2 px-2.5 sm:py-2.5 sm:px-3.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-205 dark:border-emerald-500/20 transition-all text-[10px] sm:text-xs font-bold uppercase tracking-wider whitespace-nowrap cursor-pointer"
                         title="Final Approval & Lock"
                       >
                         <Lock className="h-3.5 w-3.5 flex-shrink-0" /> Lock
@@ -786,16 +786,17 @@ export default function PayrollDashboardPage() {
 
       {/* SALARY STRUCTURE MODAL */}
       {rateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-[#0B1121] rounded-3xl max-w-md w-full p-6 border border-slate-700/50 shadow-[0_0_40px_rgba(0,0,0,0.5)] space-y-6 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-              <h3 className="text-lg font-bold text-white tracking-wide flex items-center">
-                <Settings className="w-5 h-5 mr-2 text-blue-500" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 dark:bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#0B1121] rounded-3xl max-w-md w-full p-6 border border-slate-205 dark:border-slate-700/50 shadow-xl dark:shadow-[0_0_40px_rgba(0,0,0,0.5)] space-y-6 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-wide flex items-center">
+                <Settings className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-500" />
                 Configure Salary Structure
               </h3>
               <button
+                type="button"
                 onClick={() => setRateModalOpen(false)}
-                className="p-1.5 rounded-full bg-slate-800 hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors"
+                className="p-1.5 rounded-full bg-slate-100 hover:bg-rose-500/20 text-slate-500 hover:text-rose-600 dark:bg-slate-800 dark:hover:bg-red-500/20 dark:text-slate-400 dark:hover:text-red-400 transition-colors cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -803,7 +804,7 @@ export default function PayrollDashboardPage() {
 
             <form onSubmit={handleSaveRates} className="space-y-4">
               <div>
-                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 block mb-1.5">
                   Employee / Worker
                 </label>
                 <div className="relative">
@@ -814,26 +815,26 @@ export default function PayrollDashboardPage() {
                       const found = allEmployeesList.find((emp) => emp._id === e.target.value);
                       setSelectedUserForRate(found || { _id: e.target.value });
                     }}
-                    className="w-full px-4 py-2.5 appearance-none rounded-xl bg-slate-900/50 border border-slate-700 text-slate-200 text-sm outline-none focus:border-blue-500 transition-colors font-semibold cursor-pointer"
+                    className="w-full px-4 py-2.5 appearance-none rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-350 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm outline-none focus:border-blue-500 transition-colors font-semibold cursor-pointer"
                   >
-                    <option value="" disabled className="bg-[#0B1121]">
+                    <option value="" disabled className="bg-white dark:bg-[#0B1121] text-slate-900 dark:text-white">
                       -- Select Employee --
                     </option>
                     {allEmployeesList.map((emp) => (
-                      <option key={emp._id} value={emp._id} className="bg-[#0B1121]">
+                      <option key={emp._id} value={emp._id} className="bg-white dark:bg-[#0B1121] text-slate-900 dark:text-white">
                         {emp.name} ({emp.email})
                       </option>
                     ))}
                     {selectedUserForRate && !allEmployeesList.some((e) => e._id === selectedUserForRate._id) && (
-                      <option value={selectedUserForRate._id} className="bg-[#0B1121]">{selectedUserForRate.name || selectedUserForRate._id}</option>
+                      <option value={selectedUserForRate._id} className="bg-white dark:bg-[#0B1121] text-slate-900 dark:text-white">{selectedUserForRate.name || selectedUserForRate._id}</option>
                     )}
                   </select>
-                  <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <ChevronDown className="w-4 h-4 text-slate-450 dark:text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 block mb-1.5">
                   Daily Rate (₹)
                 </label>
                 <input
@@ -841,12 +842,12 @@ export default function PayrollDashboardPage() {
                   required
                   value={rateForm.dailyRate}
                   onChange={(e) => setRateForm({ ...rateForm, dailyRate: Number(e.target.value) })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-900/50 border border-slate-700 text-slate-200 text-sm outline-none focus:border-blue-500 transition-colors font-semibold"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-350 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm outline-none focus:border-blue-500 transition-colors font-semibold"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 block mb-1.5">
                   Overtime Hourly Rate (₹/hr)
                 </label>
                 <input
@@ -854,12 +855,12 @@ export default function PayrollDashboardPage() {
                   required
                   value={rateForm.overtimeRate}
                   onChange={(e) => setRateForm({ ...rateForm, overtimeRate: Number(e.target.value) })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-900/50 border border-slate-700 text-slate-200 text-sm outline-none focus:border-blue-500 transition-colors font-semibold"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-350 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm outline-none focus:border-blue-500 transition-colors font-semibold"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 block mb-1.5">
                   Standard Shift Hours
                 </label>
                 <input
@@ -867,12 +868,12 @@ export default function PayrollDashboardPage() {
                   required
                   value={rateForm.standardShiftHours}
                   onChange={(e) => setRateForm({ ...rateForm, standardShiftHours: Number(e.target.value) })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-900/50 border border-slate-700 text-slate-200 text-sm outline-none focus:border-blue-500 transition-colors font-semibold"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-350 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm outline-none focus:border-blue-500 transition-colors font-semibold"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 block mb-1.5">
                   Monthly Fixed Salary (₹)
                 </label>
                 <input
@@ -880,21 +881,21 @@ export default function PayrollDashboardPage() {
                   required
                   value={rateForm.monthlyFixedSalary}
                   onChange={(e) => setRateForm({ ...rateForm, monthlyFixedSalary: Number(e.target.value) })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-900/50 border border-slate-700 text-slate-200 text-sm outline-none focus:border-blue-500 transition-colors font-semibold"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-350 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm outline-none focus:border-blue-500 transition-colors font-semibold"
                 />
               </div>
 
-              <div className="pt-2 flex items-center justify-end space-x-3 border-t border-slate-800">
+              <div className="pt-2 flex items-center justify-end space-x-3 border-t border-slate-200 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setRateModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-400 bg-slate-800 hover:bg-slate-700 hover:text-white transition-colors"
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(37,99,235,0.3)] transition-all"
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow transition-all cursor-pointer"
                 >
                   Save & Recalculate
                 </button>
@@ -906,21 +907,22 @@ export default function PayrollDashboardPage() {
 
       {/* ADJUSTMENT / OVERRIDE MODAL */}
       {adjustModalOpen && selectedRecordForAdjust && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-[#0B1121] rounded-3xl max-w-md w-full p-6 border border-slate-700/50 shadow-[0_0_40px_rgba(0,0,0,0.5)] space-y-6 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 dark:bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#0B1121] rounded-3xl max-w-md w-full p-6 border border-slate-205 dark:border-slate-700/50 shadow-xl dark:shadow-[0_0_40px_rgba(0,0,0,0.5)] space-y-6 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
               <div>
-                <h3 className="text-lg font-bold text-white tracking-wide flex items-center">
-                  <PlusCircle className="w-5 h-5 mr-2 text-blue-500" />
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-wide flex items-center">
+                  <PlusCircle className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-500" />
                   Add HR Override
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
                   {selectedRecordForAdjust.user?.name} ({selectedMonth})
                 </p>
               </div>
               <button
+                type="button"
                 onClick={() => setAdjustModalOpen(false)}
-                className="p-1.5 rounded-full bg-slate-800 hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors"
+                className="p-1.5 rounded-full bg-slate-100 hover:bg-rose-500/20 text-slate-500 hover:text-rose-600 dark:bg-slate-800 dark:hover:bg-red-500/20 dark:text-slate-400 dark:hover:text-red-400 transition-colors cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -928,46 +930,40 @@ export default function PayrollDashboardPage() {
 
             <form onSubmit={handleApplyAdjustment} className="space-y-4">
               <div>
-                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 block mb-1.5">
                   Adjustment Type
                 </label>
                 <div className="relative">
                   <select
                     value={adjustForm.type}
                     onChange={(e) => setAdjustForm({ ...adjustForm, type: e.target.value })}
-                    className="w-full px-4 py-2.5 appearance-none rounded-xl bg-slate-900/50 border border-slate-700 text-slate-200 text-sm outline-none focus:border-blue-500 transition-colors font-semibold cursor-pointer"
+                    className="w-full px-4 py-2.5 appearance-none rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm outline-none focus:border-blue-500 transition-colors font-semibold cursor-pointer"
                   >
-                    <option value="BONUS" className="bg-[#0B1121]">Bonus (+)</option>
-                    <option value="ALLOWANCE" className="bg-[#0B1121]">Allowance (+)</option>
-                    <option value="PENALTY" className="bg-[#0B1121]">Penalty / Deduction (-)</option>
-                    <option value="OTHER" className="bg-[#0B1121]">Other Manual Override</option>
+                    <option value="BONUS" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Bonus (+)</option>
+                    <option value="ALLOWANCE" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Allowance (+)</option>
+                    <option value="PENALTY" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Penalty / Deduction (-)</option>
+                    <option value="OTHER" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Other Manual Override</option>
                   </select>
-                  <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 block mb-1.5">
                   Amount (₹) - Use positive or negative number
                 </label>
                 <input
                   type="number"
                   required
-                  placeholder={
-                    adjustForm.type === "BONUS" || adjustForm.type === "ALLOWANCE" || adjustForm.type === "Bonus" || adjustForm.type === "Allowance"
-                      ? "e.g. 500"
-                      : adjustForm.type === "PENALTY" || adjustForm.type === "Penalty"
-                      ? "e.g. -200"
-                      : "e.g. 500 or -200"
-                  }
+                  placeholder="e.g. 500 or -200"
                   value={adjustForm.amount}
                   onChange={(e) => setAdjustForm({ ...adjustForm, amount: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-900/50 border border-slate-700 text-slate-200 text-sm outline-none focus:border-blue-500 transition-colors font-semibold"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm outline-none focus:border-blue-500 transition-colors font-semibold"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 block mb-1.5">
                   Reason / Audit Note
                 </label>
                 <textarea
@@ -976,22 +972,22 @@ export default function PayrollDashboardPage() {
                   placeholder="e.g. Festive performance bonus or safety gear damage penalty"
                   value={adjustForm.reason}
                   onChange={(e) => setAdjustForm({ ...adjustForm, reason: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-900/50 border border-slate-700 text-slate-200 text-sm outline-none focus:border-blue-500 transition-colors placeholder:text-slate-600 resize-none custom-scrollbar"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm outline-none focus:border-blue-500 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-600 resize-none custom-scrollbar"
                 />
               </div>
 
-              <div className="pt-2 flex items-center justify-end space-x-3 border-t border-slate-800">
+              <div className="pt-2 flex items-center justify-end space-x-3 border-t border-slate-200 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setAdjustModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-400 bg-slate-800 hover:bg-slate-700 hover:text-white transition-colors"
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-550 dark:text-slate-400 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all"
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow transition-all cursor-pointer"
                 >
                   {isLoading ? "Applying..." : "Apply & Recalculate"}
                 </button>
@@ -1001,33 +997,33 @@ export default function PayrollDashboardPage() {
         </div>
       )}
 
-      {/* LIGHTWEIGHT DARK ENTERPRISE CONFIRM MODAL */}
+      {/* LIGHTWEIGHT ENTERPRISE CONFIRM MODAL */}
       {confirmDialog.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-3xl bg-[#0F172A] border border-slate-700/60 p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700/60 p-6 shadow-xl dark:shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+              <div className="p-2.5 rounded-2xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-600 dark:text-amber-400 shadow-sm">
                 <AlertCircle className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white">{confirmDialog.title}</h3>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">{confirmDialog.title}</h3>
               </div>
             </div>
-            <p className="text-sm text-slate-300 mb-6 leading-relaxed">
+            <p className="text-sm text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
               {confirmDialog.message}
             </p>
             <div className="flex items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
-                className="px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-400 bg-slate-800 hover:bg-slate-700 hover:text-white transition-colors"
+                className="px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={confirmDialog.onConfirm}
-                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(37,99,235,0.3)] transition-all"
+                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow transition-all cursor-pointer"
               >
                 Confirm
               </button>

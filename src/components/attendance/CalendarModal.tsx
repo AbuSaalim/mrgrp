@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { X, Calendar as CalendarIcon, CheckCircle, AlertCircle, ChevronLeft, ChevronRight, Clock, Sparkles } from "lucide-react";
 import LeaveForm from "./LeaveForm";
 
-import LeaveBalancesWidget from "./LeaveBalancesWidget";
+// import LeaveBalancesWidget from "./LeaveBalancesWidget";
 
 interface CalendarModalProps {
   isOpen: boolean;
@@ -188,9 +188,9 @@ export default function CalendarModal({ isOpen, onClose }: CalendarModalProps) {
 
           {/* Body */}
           <div className="p-2 pb-6 sm:p-6">
-            <div className="mb-4">
+            {/* <div className="mb-4">
               <LeaveBalancesWidget />
-            </div>
+            </div> */}
 
             {/* 🚀 Month Navigation Header */}
             <div className="flex items-center justify-between mb-3 sm:mb-6 bg-slate-50 dark:bg-slate-800/50 p-1 sm:p-2 rounded-2xl border dark:border-slate-800">

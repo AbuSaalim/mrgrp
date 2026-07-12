@@ -19,33 +19,32 @@ export const metadata: Metadata = {
 
 import { Toaster } from "sonner";
 
+import { ThemeProvider } from "@/components/ThemeProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          "min-h-screen bg-slate-50 font-sans text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-50",
+          "min-h-screen bg-slate-50 font-sans text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-50",
           jakarta.variable // Font ko inject kar diya
         )}
         style={{ fontFamily: 'var(--font-jakarta)' }} // Apply directly
       >
-        {children}
-        <Toaster
-          theme="dark"
-          position="top-right"
-          richColors
-          toastOptions={{
-            style: {
-              background: "#0B1121",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              color: "#f8fafc",
-            },
-          }}
-        />
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+          {children}
+          <Toaster
+            position="top-right"
+            richColors
+            toastOptions={{
+              className: "dark:bg-[#0B1121] dark:border-[rgba(255,255,255,0.1)] dark:text-[#f8fafc] bg-white border-slate-200 text-slate-900",
+            }}
+          />
+        </ThemeProvider>
       </body>
     </html>
   );

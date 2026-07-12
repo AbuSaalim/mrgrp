@@ -250,20 +250,19 @@ export default function PendingLeavesPage() {
         });
         return `${startDate} — ${endDate}`;
     };
-
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-100 p-4 md:p-8 space-y-8 font-sans selection:bg-amber-500/20">
+        <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-100 p-4 md:p-8 space-y-8 font-sans selection:bg-amber-500/20">
             {/* TOP HEADER */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/80 pb-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800/80 pb-6">
                 <div>
-                    <div className="flex items-center gap-2 text-amber-400 font-mono text-xs uppercase tracking-wider mb-1">
+                    <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-mono text-xs uppercase tracking-wider mb-1">
                         <Sparkles className="w-4 h-4 animate-pulse" />
                         <span>Enterprise Control Center</span>
                     </div>
-                    <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
+                    <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
                         HR Leave Management
                     </h1>
-                    <p className="text-sm text-slate-400 mt-1">
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                         Review authorizations, analyze employee attendance quotas, and audit leave logs.
                     </p>
                 </div>
@@ -271,7 +270,7 @@ export default function PendingLeavesPage() {
                     <button
                         onClick={fetchLeaves}
                         disabled={isLoading}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition-all shadow-sm"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 text-slate-650 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs font-semibold transition-all shadow-sm cursor-pointer"
                     >
                         <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin text-amber-400" : ""}`} />
                         Refresh Data
@@ -282,90 +281,90 @@ export default function PendingLeavesPage() {
             {/* TOP KPI 'CONTROL CENTER' WIDGETS */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* 1. Pending Approvals */}
-                <div className="relative overflow-hidden rounded-2xl bg-slate-900/50 backdrop-blur-md border border-amber-500/30 p-5 shadow-[0_0_20px_rgba(245,158,11,0.08)] transition-all duration-300 hover:border-amber-500/50">
+                <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900/50 backdrop-blur-md border border-amber-500/40 dark:border-amber-500/30 p-5 shadow-sm dark:shadow-[0_0_20px_rgba(245,158,11,0.08)] transition-all duration-300 hover:border-amber-500/60">
                     <div className="absolute top-0 right-0 w-28 h-28 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
                     <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
                             Pending Approvals
                         </span>
-                        <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.25)]">
+                        <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-250 dark:border-amber-500/30 flex items-center justify-center text-amber-700 dark:text-amber-400 shadow-sm dark:shadow-[0_0_12px_rgba(245,158,11,0.25)]">
                             <Clock className="w-4 h-4" />
                         </div>
                     </div>
                     <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-black text-white font-mono tracking-tight">
+                        <span className="text-3xl font-black text-slate-900 dark:text-white font-mono tracking-tight">
                             {kpis.pendingCount}
                         </span>
                         {kpis.pendingCount > 0 && (
-                            <span className="text-[11px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                            <span className="text-[11px] font-bold text-amber-750 dark:text-amber-400 bg-amber-100 dark:bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-250 dark:border-amber-500/20">
                                 Action Required
                             </span>
                         )}
                     </div>
-                    <p className="text-xs text-slate-400 mt-2">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
                         Requests waiting for HR authorization
                     </p>
                 </div>
 
                 {/* 2. On Leave Today */}
-                <div className="relative overflow-hidden rounded-2xl bg-slate-900/50 backdrop-blur-md border border-emerald-500/30 p-5 shadow-[0_0_20px_rgba(16,185,129,0.08)] transition-all duration-300 hover:border-emerald-500/50">
+                <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900/50 backdrop-blur-md border border-emerald-500/40 dark:border-emerald-500/30 p-5 shadow-sm dark:shadow-[0_0_20px_rgba(16,185,129,0.08)] transition-all duration-300 hover:border-emerald-500/60">
                     <div className="absolute top-0 right-0 w-28 h-28 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
                     <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
                             On Leave Today
                         </span>
-                        <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.25)]">
+                        <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-250 dark:border-emerald-500/30 flex items-center justify-center text-emerald-700 dark:text-emerald-400 shadow-sm dark:shadow-[0_0_12px_rgba(16,185,129,0.25)]">
                             <CheckCircle2 className="w-4 h-4" />
                         </div>
                     </div>
                     <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-black text-white font-mono tracking-tight">
+                        <span className="text-3xl font-black text-slate-900 dark:text-white font-mono tracking-tight">
                             {kpis.onLeaveTodayCount}
                         </span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-2">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
                         Employees out of office today
                     </p>
                 </div>
 
                 {/* 3. Rejected This Month */}
-                <div className="relative overflow-hidden rounded-2xl bg-slate-900/50 backdrop-blur-md border border-rose-500/30 p-5 shadow-[0_0_20px_rgba(244,63,94,0.08)] transition-all duration-300 hover:border-rose-500/50">
+                <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900/50 backdrop-blur-md border border-rose-500/40 dark:border-rose-500/30 p-5 shadow-sm dark:shadow-[0_0_20px_rgba(244,63,94,0.08)] transition-all duration-300 hover:border-rose-500/60">
                     <div className="absolute top-0 right-0 w-28 h-28 bg-rose-500/10 rounded-full blur-2xl pointer-events-none" />
                     <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
                             Rejected This Month
                         </span>
-                        <div className="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-[0_0_12px_rgba(244,63,94,0.25)]">
+                        <div className="w-9 h-9 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-250 dark:border-rose-500/30 flex items-center justify-center text-rose-700 dark:text-rose-400 shadow-sm dark:shadow-[0_0_12px_rgba(244,63,94,0.25)]">
                             <XCircle className="w-4 h-4" />
                         </div>
                     </div>
                     <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-black text-white font-mono tracking-tight">
+                        <span className="text-3xl font-black text-slate-900 dark:text-white font-mono tracking-tight">
                             {kpis.rejectedThisMonthCount}
                         </span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-2">
+                    <p className="text-xs text-slate-605 dark:text-slate-400 mt-2">
                         Declined applications this month
                     </p>
                 </div>
 
                 {/* 4. Approved This Month */}
-                <div className="relative overflow-hidden rounded-2xl bg-slate-900/50 backdrop-blur-md border border-blue-500/30 p-5 shadow-[0_0_20px_rgba(59,130,246,0.08)] transition-all duration-300 hover:border-blue-500/50">
+                <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900/50 backdrop-blur-md border border-blue-500/40 dark:border-blue-500/30 p-5 shadow-sm dark:shadow-[0_0_20px_rgba(59,130,246,0.08)] transition-all duration-300 hover:border-blue-500/60">
                     <div className="absolute top-0 right-0 w-28 h-28 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
                     <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
                             Approved This Month
                         </span>
-                        <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.25)]">
+                        <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-250 dark:border-blue-500/30 flex items-center justify-center text-blue-700 dark:text-blue-400 shadow-sm dark:shadow-[0_0_12px_rgba(59,130,246,0.25)]">
                             <ShieldCheck className="w-4 h-4" />
                         </div>
                     </div>
                     <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-black text-white font-mono tracking-tight">
+                        <span className="text-3xl font-black text-slate-900 dark:text-white font-mono tracking-tight">
                             {kpis.approvedThisMonthCount}
                         </span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-2">
+                    <p className="text-xs text-slate-605 dark:text-slate-400 mt-2">
                         Authorized applications this month
                     </p>
                 </div>
@@ -374,25 +373,25 @@ export default function PendingLeavesPage() {
             {/* PENDING AUTHORIZATIONS SECTION (GRID + BULK ACTIONS) */}
             <div className="space-y-4">
                 {/* Bulk Action Header Bar */}
-                <div className="bg-slate-900/60 backdrop-blur-md rounded-2xl border border-slate-800 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="bg-white dark:bg-slate-900/60 backdrop-blur-md rounded-2xl border border-slate-300 dark:border-slate-800 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                         <button
                             type="button"
                             onClick={toggleSelectAll}
                             disabled={pendingLeaves.length === 0}
-                            className="flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer group"
+                            className="flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer group"
                         >
                             {isAllSelected ? (
-                                <CheckSquare className="w-4 h-4 text-amber-400" />
+                                <CheckSquare className="w-4 h-4 text-amber-500" />
                             ) : (
-                                <Square className="w-4 h-4 text-slate-500 group-hover:text-slate-300" />
+                                <Square className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300" />
                             )}
                             <span>Select All</span>
                         </button>
-                        <span className="h-4 w-px bg-slate-800" />
-                        <h2 className="text-base font-bold text-white flex items-center gap-2">
+                        <span className="h-4 w-px bg-slate-300 dark:bg-slate-800" />
+                        <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                             <span>Pending Authorizations</span>
-                            <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                            <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 dark:border-amber-500/30">
                                 {pendingLeaves.length}
                             </span>
                         </h2>
@@ -400,23 +399,23 @@ export default function PendingLeavesPage() {
 
                     {/* Bulk Action Controls */}
                     {selectedLeaveIds.length > 0 && (
-                        <div className="flex items-center gap-3 bg-slate-950/80 border border-amber-500/30 px-3.5 py-1.5 rounded-xl">
-                            <span className="text-xs text-amber-300 font-medium font-mono">
+                        <div className="flex items-center gap-3 bg-white dark:bg-slate-950 border border-amber-500/30 px-3.5 py-1.5 rounded-xl shadow-sm">
+                            <span className="text-xs text-amber-650 dark:text-amber-300 font-medium font-mono">
                                 {selectedLeaveIds.length} selected
                             </span>
                             <button
                                 type="button"
                                 disabled={isProcessingBulk}
-                                onClick={() => handleBulkAction("Approved")}
-                                className="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-all shadow-[0_0_12px_rgba(16,185,129,0.3)] disabled:opacity-50"
+                                onClick={(e) => { e.stopPropagation(); handleBulkAction("Approved"); }}
+                                className="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-all shadow-[0_0_12px_rgba(16,185,129,0.3)] disabled:opacity-50 cursor-pointer"
                             >
                                 {isProcessingBulk ? "Processing..." : "Bulk Approve"}
                             </button>
                             <button
                                 type="button"
                                 disabled={isProcessingBulk}
-                                onClick={() => handleBulkAction("Rejected")}
-                                className="px-3.5 py-1.5 rounded-lg border border-rose-500/40 text-rose-400 hover:bg-rose-500/10 font-bold text-xs transition-all disabled:opacity-50"
+                                onClick={(e) => { e.stopPropagation(); handleBulkAction("Rejected"); }}
+                                className="px-3.5 py-1.5 rounded-lg bg-white dark:bg-slate-950 border border-rose-500/40 text-rose-650 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 font-bold text-xs transition-all disabled:opacity-50 cursor-pointer"
                             >
                                 Bulk Reject
                             </button>
@@ -428,14 +427,14 @@ export default function PendingLeavesPage() {
                 {isLoading ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                         {[1, 2, 3].map(i => (
-                            <div key={i} className="h-60 rounded-2xl bg-slate-900/40 border border-slate-800/80 animate-pulse" />
+                            <div key={i} className="h-60 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/80 animate-pulse" />
                         ))}
                     </div>
                 ) : pendingLeaves.length === 0 ? (
-                    <div className="bg-slate-900/30 border border-slate-800/80 rounded-2xl p-10 text-center">
-                        <CheckCircle2 className="w-10 h-10 text-emerald-400/80 mx-auto mb-3" />
-                        <h3 className="text-base font-bold text-white">All Clear</h3>
-                        <p className="text-xs text-slate-400 mt-1">
+                    <div className="bg-slate-50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-10 text-center shadow-sm w-full">
+                        <CheckCircle2 className="w-10 h-10 text-emerald-600 dark:text-emerald-400 mx-auto mb-3" />
+                        <h3 className="text-base font-extrabold text-slate-900 dark:text-white">All Clear</h3>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
                             No pending leave authorization requests right now.
                         </p>
                     </div>
@@ -449,10 +448,10 @@ export default function PendingLeavesPage() {
                                 <div
                                     key={leave._id}
                                     onClick={() => setDrawerLeave(leave)}
-                                    className={`group relative bg-slate-900/50 backdrop-blur-md rounded-2xl border p-5 flex flex-col justify-between transition-all duration-200 cursor-pointer hover:shadow-lg ${
+                                    className={`group relative bg-white dark:bg-slate-900/50 backdrop-blur-md rounded-2xl border p-5 flex flex-col justify-between transition-all duration-200 cursor-pointer hover:shadow-md dark:hover:shadow-lg ${
                                         isSelected
-                                            ? "border-amber-500/60 bg-amber-500/[0.03] shadow-[0_0_20px_rgba(245,158,11,0.08)]"
-                                            : "border-slate-800 hover:border-slate-700"
+                                            ? "border-amber-500 bg-amber-500/[0.01] dark:bg-amber-500/[0.03] shadow-[0_0_20px_rgba(245,158,11,0.08)]"
+                                            : "border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700"
                                     }`}
                                 >
                                     <div>
@@ -462,37 +461,37 @@ export default function PendingLeavesPage() {
                                                 <button
                                                     type="button"
                                                     onClick={(e) => toggleSelectCard(e, leave._id)}
-                                                    className="text-slate-500 hover:text-amber-400 transition-colors"
+                                                    className="text-slate-400 dark:text-slate-500 hover:text-amber-550 dark:hover:text-amber-400 transition-colors"
                                                 >
                                                     {isSelected ? (
-                                                        <CheckSquare className="w-4 h-4 text-amber-400" />
+                                                        <CheckSquare className="w-4 h-4 text-amber-500" />
                                                     ) : (
                                                         <Square className="w-4 h-4" />
                                                     )}
                                                 </button>
                                                 <div>
-                                                    <h3 className="font-bold text-white text-base leading-snug group-hover:text-amber-300 transition-colors">
+                                                    <h3 className="font-bold text-slate-900 dark:text-white text-base leading-snug group-hover:text-amber-600 dark:group-hover:text-amber-300 transition-colors">
                                                         {leave.userId?.name || "Unknown Employee"}
                                                     </h3>
-                                                    <p className="text-xs text-slate-400 font-medium">
+                                                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
                                                         {leave.userId?.role || "Staff Member"}
                                                     </p>
                                                 </div>
                                             </div>
 
-                                            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-amber-500/10 border border-amber-500/30 text-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.15)] inline-flex items-center gap-1 shrink-0">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                                            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-amber-50 dark:bg-amber-500/10 border border-amber-250 dark:border-amber-500/30 text-amber-700 dark:text-amber-400 shadow-sm dark:shadow-[0_0_10px_rgba(245,158,11,0.15)] inline-flex items-center gap-1 shrink-0">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400 animate-pulse" />
                                                 Pending
                                             </span>
                                         </div>
 
                                         {/* Date Range & Leave Type Pill */}
                                         <div className="mt-4 flex flex-wrap items-center gap-2">
-                                            <span className="px-2.5 py-1 rounded-lg bg-slate-950/80 border border-slate-800 text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                                                <Calendar className="w-3.5 h-3.5 text-blue-400" />
+                                            <span className="px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-950/80 border border-slate-300 dark:border-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                                <Calendar className="w-3.5 h-3.5 text-blue-600 dark:text-blue-405" />
                                                 {formatLeaveDateRange(leave.date, leave.endDate)}
                                             </span>
-                                            <span className="px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold">
+                                            <span className="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-700 dark:text-blue-400 text-xs font-bold">
                                                 {leave.type} Leave
                                             </span>
                                         </div>
@@ -500,12 +499,12 @@ export default function PendingLeavesPage() {
                                         {/* Quota Status */}
                                         <div className="mt-2.5">
                                             {leave.isPaidLeaveQuotaUsed ? (
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-[11px] font-bold">
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-500/10 border border-rose-250 dark:border-rose-500/30 text-rose-700 dark:text-rose-300 text-[11px] font-bold">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                                                     Quota Used ({leave.approvedLeavesThisMonth || 1}/1) → LWP
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[11px] font-bold">
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-250 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                                                     Quota Available (0/1) → Paid Leave
                                                 </span>
@@ -513,15 +512,15 @@ export default function PendingLeavesPage() {
                                         </div>
 
                                         {/* Reason Box */}
-                                        <div className="mt-3 bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
-                                            <p className="text-xs text-slate-300 italic line-clamp-2">
+                                        <div className="mt-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800/80 rounded-xl p-3">
+                                            <p className="text-xs text-slate-700 dark:text-slate-300 italic line-clamp-2">
                                                 &ldquo;{leave.reason || "No reason specified"}&rdquo;
                                             </p>
                                         </div>
                                     </div>
 
                                     {/* Actions & Drawer Hint */}
-                                    <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-col gap-2.5">
+                                    <div className="mt-4 pt-3 border-t border-slate-300 dark:border-slate-800/80 flex flex-col gap-2.5">
                                         <div className="flex gap-2">
                                             <button
                                                 type="button"
@@ -530,7 +529,7 @@ export default function PendingLeavesPage() {
                                                     e.stopPropagation();
                                                     handleAction(leave._id, "Approved");
                                                 }}
-                                                className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(16,185,129,0.2)] flex items-center justify-center gap-1.5 disabled:opacity-50"
+                                                className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(16,185,129,0.2)] flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
                                             >
                                                 <Check className="w-3.5 h-3.5 stroke-[3]" />
                                                 Approve
@@ -542,7 +541,7 @@ export default function PendingLeavesPage() {
                                                     e.stopPropagation();
                                                     handleAction(leave._id, "Rejected");
                                                 }}
-                                                className="flex-1 py-2.5 bg-slate-950/80 border border-rose-500/40 text-rose-400 hover:bg-rose-500/15 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+                                                className="flex-1 py-2.5 bg-white dark:bg-slate-950 border border-rose-500/40 text-rose-650 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/15 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
                                             >
                                                 <X className="w-3.5 h-3.5 stroke-[3]" />
                                                 Reject
@@ -564,23 +563,23 @@ export default function PendingLeavesPage() {
             {/* COMPACT & FILTERABLE LEAVE HISTORY TABLE */}
             <div className="space-y-4">
                 {/* Section Title & Filter Controls Bar */}
-                <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl border border-slate-800 p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div className="bg-white dark:bg-slate-900/50 backdrop-blur-md rounded-2xl border border-slate-300 dark:border-slate-800 p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-sm">
                     <div className="flex items-center gap-2.5">
-                        <History className="w-5 h-5 text-blue-400" />
-                        <h2 className="text-lg font-bold text-white">Leave History Archive</h2>
+                        <History className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">Leave History Archive</h2>
                     </div>
 
                     {/* Filters and Search Bar */}
                     <div className="flex flex-wrap items-center gap-2.5">
                         {/* Search Input */}
                         <div className="relative w-full sm:w-56">
-                            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
                             <input
                                 type="text"
                                 placeholder="Search employee..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500/50 transition-colors"
+                                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500/50 transition-colors"
                             />
                         </div>
 
@@ -588,7 +587,7 @@ export default function PendingLeavesPage() {
                         <select
                             value={monthFilter}
                             onChange={(e) => setMonthFilter(e.target.value)}
-                            className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-blue-500/50"
+                            className="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-300 focus:outline-none focus:border-blue-500/50 cursor-pointer"
                         >
                             <option value="ALL">All Months</option>
                             {availableMonths.map(month => (
@@ -600,7 +599,7 @@ export default function PendingLeavesPage() {
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value as any)}
-                            className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-blue-500/50"
+                            className="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-300 focus:outline-none focus:border-blue-500/50 cursor-pointer"
                         >
                             <option value="ALL">All Status</option>
                             <option value="Approved">Approved</option>
@@ -611,7 +610,7 @@ export default function PendingLeavesPage() {
                         <select
                             value={typeFilter}
                             onChange={(e) => setTypeFilter(e.target.value)}
-                            className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-blue-500/50"
+                            className="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-850 dark:text-slate-300 focus:outline-none focus:border-blue-500/50 cursor-pointer"
                         >
                             <option value="ALL">All Types</option>
                             {availableTypes.map(t => (
@@ -622,59 +621,63 @@ export default function PendingLeavesPage() {
                 </div>
 
                 {/* Table Container */}
-                <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl border border-slate-800 overflow-hidden shadow-sm">
+                <div className="bg-white dark:bg-slate-900/50 backdrop-blur-md rounded-2xl border border-slate-300 dark:border-slate-800 overflow-hidden shadow-sm">
                     {/* Desktop View */}
                     <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-left text-xs">
                             <thead>
-                                <tr className="bg-slate-900/90 text-slate-400 border-b border-slate-800 uppercase tracking-wider">
-                                    <th className="px-5 py-3.5 font-semibold">Employee</th>
-                                    <th className="px-5 py-3.5 font-semibold">Date Range</th>
-                                    <th className="px-5 py-3.5 font-semibold">Type</th>
-                                    <th className="px-5 py-3.5 font-semibold">Reason</th>
-                                    <th className="px-5 py-3.5 font-semibold">Pay Impact</th>
-                                    <th className="px-5 py-3.5 font-semibold text-right">Status</th>
+                                <tr className="bg-slate-50 dark:bg-slate-900/90 text-slate-700 dark:text-slate-400 border-b border-slate-300 dark:border-slate-800 uppercase tracking-wider font-bold">
+                                    <th className="px-4 py-3.5 font-bold text-center w-12">#</th>
+                                    <th className="px-5 py-3.5 font-bold">Employee</th>
+                                    <th className="px-5 py-3.5 font-bold">Date Range</th>
+                                    <th className="px-5 py-3.5 font-bold">Type</th>
+                                    <th className="px-5 py-3.5 font-bold">Reason</th>
+                                    <th className="px-5 py-3.5 font-bold">Pay Impact</th>
+                                    <th className="px-5 py-3.5 font-bold text-right">Status</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-800/80">
+                            <tbody className="divide-y divide-slate-300 dark:divide-slate-800/80">
                                 {filteredHistory.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="px-5 py-10 text-center text-slate-500">
+                                        <td colSpan={7} className="px-5 py-10 text-center text-slate-600 dark:text-slate-500 font-bold">
                                             No leave history records matching your current filter criteria.
                                         </td>
                                     </tr>
                                 ) : (
-                                    filteredHistory.map(leave => (
+                                    filteredHistory.map((leave, index) => (
                                         <tr
                                             key={leave._id}
                                             onClick={() => setDrawerLeave(leave)}
-                                            className="even:bg-slate-900/30 odd:bg-slate-900/10 hover:bg-slate-800/50 transition-colors cursor-pointer"
+                                            className="hover:bg-slate-55/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
                                         >
+                                            <td className="px-4 py-3.5 text-center font-bold font-mono text-slate-500 dark:text-slate-500 border-r border-slate-205 dark:border-slate-800/50">
+                                                {index + 1}
+                                            </td>
                                             <td className="px-5 py-3.5">
-                                                <div className="font-bold text-white text-sm">
+                                                <div className="font-bold text-slate-900 dark:text-white text-sm">
                                                     {leave.userId?.name || "Unknown"}
                                                 </div>
-                                                <div className="text-[11px] text-slate-400">
+                                                <div className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
                                                     {leave.userId?.role || "Staff Member"}
                                                 </div>
                                             </td>
-                                            <td className="px-5 py-3.5 font-mono text-slate-300">
+                                            <td className="px-5 py-3.5 font-mono text-slate-700 dark:text-slate-300 font-bold">
                                                 {formatLeaveDateRange(leave.date, leave.endDate)}
                                             </td>
                                             <td className="px-5 py-3.5">
-                                                <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">
+                                                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold border border-slate-300 dark:border-transparent">
                                                     {leave.type}
                                                 </span>
                                             </td>
-                                            <td className="px-5 py-3.5 text-slate-300 max-w-xs truncate italic">
+                                            <td className="px-5 py-3.5 text-slate-700 dark:text-slate-300 max-w-xs truncate italic font-medium">
                                                 {leave.reason || "—"}
                                             </td>
                                             <td className="px-5 py-3.5">
                                                 <span
                                                     className={`px-2 py-0.5 rounded text-[11px] font-bold border ${
                                                         leave.isPaidLeaveQuotaUsed
-                                                            ? "bg-rose-500/10 border-rose-500/30 text-rose-300"
-                                                            : "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
+                                                            ? "bg-rose-50 dark:bg-rose-500/10 border-rose-300 dark:border-rose-500/30 text-rose-750 dark:text-rose-300"
+                                                            : "bg-emerald-50 dark:bg-emerald-500/10 border-emerald-300 dark:border-emerald-500/30 text-emerald-750 dark:text-emerald-300"
                                                     }`}
                                                 >
                                                     {leave.payImpactText ||
@@ -685,13 +688,13 @@ export default function PendingLeavesPage() {
                                             </td>
                                             <td className="px-5 py-3.5 text-right">
                                                 {leave.status === "Approved" ? (
-                                                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 inline-flex items-center gap-1.5 shadow-[0_0_10px_rgba(16,185,129,0.15)]">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-emerald-50 dark:bg-emerald-500/10 text-emerald-750 dark:text-emerald-400 border border-emerald-250 dark:border-emerald-500/30 inline-flex items-center gap-1.5 shadow-sm dark:shadow-[0_0_10px_rgba(16,185,129,0.15)]">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
                                                         Approved
                                                     </span>
                                                 ) : (
-                                                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-rose-500/10 text-rose-400 border border-rose-500/30 inline-flex items-center gap-1.5 shadow-[0_0_10px_rgba(244,63,94,0.15)]">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                                                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-rose-50 dark:bg-rose-500/10 text-rose-750 dark:text-rose-400 border border-rose-250 dark:border-rose-500/30 inline-flex items-center gap-1.5 shadow-sm dark:shadow-[0_0_10px_rgba(244,63,94,0.15)]">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 dark:bg-rose-400" />
                                                         Rejected
                                                     </span>
                                                 )}
@@ -704,7 +707,7 @@ export default function PendingLeavesPage() {
                     </div>
 
                     {/* Mobile Card View */}
-                    <div className="md:hidden divide-y divide-slate-800">
+                    <div className="md:hidden divide-y divide-slate-300 dark:divide-slate-800">
                         {filteredHistory.length === 0 ? (
                             <div className="p-8 text-center text-xs text-slate-500">
                                 No leave history records matching your current filter criteria.
@@ -714,29 +717,29 @@ export default function PendingLeavesPage() {
                                 <div
                                     key={leave._id}
                                     onClick={() => setDrawerLeave(leave)}
-                                    className="p-4 space-y-2.5 hover:bg-slate-800/40 transition-colors cursor-pointer"
+                                    className="p-4 space-y-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors cursor-pointer"
                                 >
                                     <div className="flex items-start justify-between gap-2">
                                         <div>
-                                            <h4 className="font-bold text-white text-sm">
+                                            <h4 className="font-bold text-slate-900 dark:text-white text-sm">
                                                 {leave.userId?.name || "Unknown Employee"}
                                             </h4>
-                                            <p className="text-xs text-slate-400">
+                                            <p className="text-xs text-slate-605 dark:text-slate-450">
                                                 {formatLeaveDateRange(leave.date, leave.endDate)} •{" "}
-                                                <span className="text-slate-300 font-semibold">{leave.type} Leave</span>
+                                                <span className="text-slate-700 dark:text-slate-300 font-bold">{leave.type} Leave</span>
                                             </p>
                                         </div>
                                         {leave.status === "Approved" ? (
-                                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-50 dark:bg-emerald-500/10 text-emerald-750 dark:text-emerald-400 border border-emerald-250 dark:border-emerald-500/30">
                                                 Approved
                                             </span>
                                         ) : (
-                                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-rose-500/10 text-rose-400 border border-rose-500/30">
+                                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-rose-50 dark:bg-rose-500/10 text-rose-750 dark:text-rose-400 border border-rose-250 dark:border-rose-500/30">
                                                 Rejected
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-xs text-slate-300 italic">
+                                    <p className="text-xs text-slate-700 dark:text-slate-300 italic font-medium">
                                         &ldquo;{leave.reason || "No reason specified"}&rdquo;
                                     </p>
                                 </div>
@@ -751,26 +754,26 @@ export default function PendingLeavesPage() {
                 <div className="fixed inset-0 z-50 flex justify-end">
                     {/* Backdrop Overlay */}
                     <div
-                        className="fixed inset-0 bg-slate-950/75 backdrop-blur-sm transition-opacity"
+                        className="fixed inset-0 bg-slate-950/40 dark:bg-slate-950/75 backdrop-blur-sm transition-opacity"
                         onClick={() => setDrawerLeave(null)}
                     />
 
                     {/* Slide-out Drawer Panel */}
-                    <div className="relative w-full max-w-lg bg-slate-900 border-l border-slate-800 text-slate-100 h-full flex flex-col shadow-2xl z-10 animate-in slide-in-from-right duration-300">
+                    <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 text-slate-750 dark:text-slate-100 h-full flex flex-col shadow-2xl z-10 animate-in slide-in-from-right duration-300">
                         {/* Drawer Header */}
-                        <div className="p-6 border-b border-slate-800 flex items-start justify-between gap-4 bg-slate-900/90">
+                        <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-start justify-between gap-4 bg-slate-50 dark:bg-slate-900/90">
                             <div className="flex items-center gap-3.5">
-                                <div className="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold text-base shadow-sm">
+                                <div className="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 font-bold text-base shadow-sm">
                                     {drawerLeave.userId?.name?.[0]?.toUpperCase() || "E"}
                                 </div>
                                 <div>
-                                    <span className="text-[11px] font-mono text-amber-400 uppercase tracking-wider font-semibold">
+                                    <span className="text-[11px] font-mono text-amber-600 dark:text-amber-400 uppercase tracking-wider font-semibold">
                                         Employee Smart Context
                                     </span>
-                                    <h3 className="text-lg font-bold text-white">
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                                         {drawerLeave.userId?.name || "Employee Details"}
                                     </h3>
-                                    <p className="text-xs text-slate-400">
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
                                         {drawerLeave.userId?.role || "Staff Member"}
                                     </p>
                                 </div>
@@ -778,7 +781,7 @@ export default function PendingLeavesPage() {
                             <button
                                 type="button"
                                 onClick={() => setDrawerLeave(null)}
-                                className="p-2 rounded-xl bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer"
                             >
                                 <X className="w-4 h-4" />
                             </button>
@@ -787,18 +790,18 @@ export default function PendingLeavesPage() {
                         {/* Drawer Body */}
                         <div className="flex-1 overflow-y-auto p-6 space-y-6">
                             {/* 1. Request Details Card */}
-                            <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 space-y-3">
+                            <div className="bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3 shadow-sm">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
+                                    <span className="text-xs uppercase tracking-wider text-slate-505 dark:text-slate-400 font-semibold">
                                         Selected Leave Request
                                     </span>
                                     <span
-                                        className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
+                                        className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase border ${
                                             drawerLeave.status === "Approved"
-                                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                                                ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-500/30"
                                                 : drawerLeave.status === "Rejected"
-                                                ? "bg-rose-500/10 text-rose-400 border border-rose-500/30"
-                                                : "bg-amber-500/10 text-amber-400 border border-amber-500/30"
+                                                ? "bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-100 dark:border-rose-500/30"
+                                                : "bg-amber-50 dark:bg-amber-500/10 text-amber-705 dark:text-amber-400 border-amber-100 dark:border-amber-500/30"
                                         }`}
                                     >
                                         {drawerLeave.status}
@@ -808,19 +811,19 @@ export default function PendingLeavesPage() {
                                 <div className="grid grid-cols-2 gap-3 pt-1 text-xs">
                                     <div>
                                         <p className="text-slate-500">Leave Type</p>
-                                        <p className="font-bold text-white mt-0.5">{drawerLeave.type} Leave</p>
+                                        <p className="font-bold text-slate-800 dark:text-white mt-0.5">{drawerLeave.type} Leave</p>
                                     </div>
                                     <div>
                                         <p className="text-slate-500">Date Range</p>
-                                        <p className="font-bold text-white mt-0.5">
+                                        <p className="font-bold text-slate-800 dark:text-white mt-0.5">
                                             {formatLeaveDateRange(drawerLeave.date, drawerLeave.endDate)}
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className="pt-2 border-t border-slate-900">
+                                <div className="pt-2 border-t border-slate-200 dark:border-slate-900">
                                     <p className="text-xs text-slate-500 mb-1">Reason provided</p>
-                                    <p className="text-xs text-slate-200 italic bg-slate-900/60 p-3 rounded-xl border border-slate-800/60">
+                                    <p className="text-xs text-slate-700 dark:text-slate-200 italic bg-white dark:bg-slate-900/60 p-3 rounded-xl border border-slate-200 dark:border-slate-800/60">
                                         &ldquo;{drawerLeave.reason || "No reason specified"}&rdquo;
                                     </p>
                                 </div>
@@ -829,19 +832,19 @@ export default function PendingLeavesPage() {
                             {/* 2. Employee Leave Balances (CL, SL, EL) */}
                             {drawerEmployeeStats && (
                                 <div className="space-y-3">
-                                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                                        <Layers className="w-3.5 h-3.5 text-blue-400" />
+                                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                        <Layers className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                                         Current Leave Balances (Annual Policy)
                                     </h4>
                                     <div className="grid grid-cols-3 gap-3">
                                         {/* CL Card */}
-                                        <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-3 text-center">
-                                            <span className="text-[11px] font-bold text-slate-400 uppercase">
+                                        <div className="bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-center shadow-sm">
+                                            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase">
                                                 Casual (CL)
                                             </span>
-                                            <p className="text-2xl font-black text-white font-mono mt-1">
+                                            <p className="text-2xl font-black text-slate-800 dark:text-white font-mono mt-1">
                                                 {drawerEmployeeStats.clBalance.remaining}
-                                                <span className="text-xs font-normal text-slate-500">
+                                                <span className="text-xs font-normal text-slate-400 dark:text-slate-500">
                                                     /{drawerEmployeeStats.clBalance.quota}
                                                 </span>
                                             </p>
@@ -851,13 +854,13 @@ export default function PendingLeavesPage() {
                                         </div>
 
                                         {/* SL Card */}
-                                        <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-3 text-center">
-                                            <span className="text-[11px] font-bold text-slate-400 uppercase">
+                                        <div className="bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-center shadow-sm">
+                                            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase">
                                                 Sick (SL)
                                             </span>
-                                            <p className="text-2xl font-black text-white font-mono mt-1">
+                                            <p className="text-2xl font-black text-slate-800 dark:text-white font-mono mt-1">
                                                 {drawerEmployeeStats.slBalance.remaining}
-                                                <span className="text-xs font-normal text-slate-500">
+                                                <span className="text-xs font-normal text-slate-400 dark:text-slate-500">
                                                     /{drawerEmployeeStats.slBalance.quota}
                                                 </span>
                                             </p>
@@ -867,13 +870,13 @@ export default function PendingLeavesPage() {
                                         </div>
 
                                         {/* EL Card */}
-                                        <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-3 text-center">
-                                            <span className="text-[11px] font-bold text-slate-400 uppercase">
+                                        <div className="bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-center shadow-sm">
+                                            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase">
                                                 Earned (EL)
                                             </span>
-                                            <p className="text-2xl font-black text-white font-mono mt-1">
+                                            <p className="text-2xl font-black text-slate-800 dark:text-white font-mono mt-1">
                                                 {drawerEmployeeStats.elBalance.remaining}
-                                                <span className="text-xs font-normal text-slate-500">
+                                                <span className="text-xs font-normal text-slate-400 dark:text-slate-500">
                                                     /{drawerEmployeeStats.elBalance.quota}
                                                 </span>
                                             </p>
@@ -888,30 +891,30 @@ export default function PendingLeavesPage() {
                             {/* 3. Recent Leave History for Employee */}
                             {drawerEmployeeStats && (
                                 <div className="space-y-3">
-                                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                                        <FileText className="w-3.5 h-3.5 text-blue-400" />
+                                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-550 dark:text-slate-400 flex items-center gap-2">
+                                        <FileText className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                                         Recent Leave Requests ({drawerEmployeeStats.empName})
                                     </h4>
                                     <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
                                         {drawerEmployeeStats.history.map(item => (
                                             <div
                                                 key={item._id}
-                                                className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3 flex items-center justify-between text-xs"
+                                                className="bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80 rounded-xl p-3 flex items-center justify-between text-xs"
                                             >
                                                 <div>
-                                                    <span className="font-bold text-white">{item.type} Leave</span>
-                                                    <span className="text-slate-500 mx-1.5">•</span>
-                                                    <span className="text-slate-400 font-mono">
+                                                    <span className="font-bold text-slate-800 dark:text-white">{item.type} Leave</span>
+                                                    <span className="text-slate-400 dark:text-slate-500 mx-1.5">•</span>
+                                                    <span className="text-slate-600 dark:text-slate-400 font-mono">
                                                         {formatLeaveDateRange(item.date, item.endDate)}
                                                     </span>
                                                 </div>
                                                 <span
-                                                    className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                                    className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${
                                                         item.status === "Approved"
-                                                            ? "text-emerald-400 bg-emerald-500/10 border border-emerald-500/20"
+                                                            ? "text-emerald-705 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-100 dark:border-emerald-500/20"
                                                             : item.status === "Rejected"
-                                                            ? "text-rose-400 bg-rose-500/10 border border-rose-500/20"
-                                                            : "text-amber-400 bg-amber-500/10 border border-amber-500/20"
+                                                            ? "text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 border-rose-100 dark:border-rose-500/20"
+                                                            : "text-amber-705 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border-amber-100 dark:border-amber-500/20"
                                                     }`}
                                                 >
                                                     {item.status}
@@ -925,11 +928,11 @@ export default function PendingLeavesPage() {
 
                         {/* Drawer Footer Actions */}
                         {drawerLeave.status === "Pending" ? (
-                            <div className="p-5 border-t border-slate-800 bg-slate-900/90 flex gap-3">
+                            <div className="p-5 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 flex gap-3">
                                 <button
                                     type="button"
                                     onClick={() => handleAction(drawerLeave._id, "Approved")}
-                                    className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center justify-center gap-2"
+                                    className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center justify-center gap-2 cursor-pointer"
                                 >
                                     <Check className="w-4 h-4 stroke-[3]" />
                                     Approve Authorization
@@ -937,17 +940,17 @@ export default function PendingLeavesPage() {
                                 <button
                                     type="button"
                                     onClick={() => handleAction(drawerLeave._id, "Rejected")}
-                                    className="flex-1 py-3 bg-slate-950 border border-rose-500/40 text-rose-400 hover:bg-rose-500/15 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+                                    className="flex-1 py-3 bg-white dark:bg-slate-950 border border-rose-500/40 text-rose-650 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/15 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
                                 >
                                     <X className="w-4 h-4 stroke-[3]" />
                                     Reject Application
                                 </button>
                             </div>
                         ) : (
-                            <div className="p-5 border-t border-slate-800 bg-slate-900/90 text-center">
-                                <p className="text-xs text-slate-400">
+                            <div className="p-5 border-t border-slate-205 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 text-center">
+                                <p className="text-xs text-slate-600 dark:text-slate-400">
                                     This request is currently marked as{" "}
-                                    <span className="font-bold text-white uppercase">{drawerLeave.status}</span>.
+                                    <span className="font-bold text-slate-800 dark:text-white uppercase">{drawerLeave.status}</span>.
                                 </p>
                             </div>
                         )}

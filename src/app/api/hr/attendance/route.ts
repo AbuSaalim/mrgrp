@@ -77,7 +77,8 @@ export async function PUT(request: Request) {
     if (punchInTime !== undefined) {
       isTimeUpdated = true;
       if (punchInTime !== "") {
-        updateData["punchIn.time"] = new Date(`${recordDate}T${punchInTime}`);
+        const inTimeStr = punchInTime.includes("T") ? punchInTime : `${recordDate}T${punchInTime}`;
+        updateData["punchIn.time"] = new Date(inTimeStr);
         updateData["punchIn.location.address"] = "Manually adjusted by HR";
       } else {
         updateData["punchIn.time"] = null;
@@ -87,7 +88,8 @@ export async function PUT(request: Request) {
     if (punchOutTime !== undefined) {
       isTimeUpdated = true;
       if (punchOutTime !== "") {
-        updateData["punchOut.time"] = new Date(`${recordDate}T${punchOutTime}`);
+        const outTimeStr = punchOutTime.includes("T") ? punchOutTime : `${recordDate}T${punchOutTime}`;
+        updateData["punchOut.time"] = new Date(outTimeStr);
         updateData["punchOut.location.address"] = "Manually adjusted by HR";
       } else {
         updateData["punchOut.time"] = null;
