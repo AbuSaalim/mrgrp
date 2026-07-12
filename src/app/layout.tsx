@@ -13,8 +13,13 @@ const jakarta = Plus_Jakarta_Sans({
 
 
 export const metadata: Metadata = {
-  title: "BDIT Academic",
+  title: "MR App",
   description: "Modern construction management software",
+  icons: {
+    icon: "/fav.ico",
+    shortcut: "/fav.ico",
+    apple: "/fav.ico",
+  },
 };
 
 import { Toaster } from "sonner";
