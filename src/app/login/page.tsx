@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Lock, Mail, Fingerprint } from "lucide-react";
+import { Lock, Mail } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -59,10 +59,10 @@ export default function LoginPage() {
         <div className="rounded-3xl bg-[#0B1121]/70 backdrop-blur-2xl border border-slate-700/50 shadow-[0_0_50px_rgba(0,0,0,0.5)] p-8 sm:p-10 transition-all">
           
           <div className="text-center mb-10 relative">
-            <div className="mx-auto h-16 w-16 bg-slate-900/80 rounded-2xl flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(37,99,235,0.2)] border border-blue-500/30 relative group">
+            <div className="mx-auto h-16 w-16 bg-slate-900/80 rounded-2xl flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(37,99,235,0.2)] border border-blue-500/30 relative group overflow-hidden">
               {/* Internal glow ring */}
               <div className="absolute inset-0 rounded-2xl bg-blue-500/20 blur-md group-hover:bg-blue-500/30 transition-all"></div>
-              <Fingerprint className="h-8 w-8 text-blue-400 relative z-10" strokeWidth={1.5} />
+              <img src="/logo.png" alt="Logo" className="h-10 w-10 object-contain relative z-10" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mb-2">
               Welcome Back
