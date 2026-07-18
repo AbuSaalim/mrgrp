@@ -22,7 +22,7 @@ const OFFICIAL_LEAVE_OPTIONS = [
 ];
 
 export default function LeaveForm({ selectedDate, onClose, onSuccess }: LeaveFormProps) {
-  const [type, setType] = useState<string>("CL");
+  const [type, setType] = useState<string>("LWP");
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -36,14 +36,29 @@ export default function LeaveForm({ selectedDate, onClose, onSuccess }: LeaveFor
       .then((data) => {
         if (data && data.balances) {
           setBalances(data.balances);
+          // Auto select first leave type with quota > 0, otherwise fallback to LWP
+          const firstAvailable = OFFICIAL_LEAVE_OPTIONS.find(
+            (opt) => opt.code !== "LWP" && data.balances[opt.code]?.quota > 0
+          );
+          if (firstAvailable) {
+            setType(firstAvailable.code);
+          } else {
+            setType("LWP");
+          }
         }
       })
       .catch((err) => console.error("Error fetching balance inside form:", err))
       .finally(() => setIsLoadingBalances(false));
   }, []);
 
+  const visibleOptions = OFFICIAL_LEAVE_OPTIONS.filter((opt) => {
+    if (opt.code === "LWP") return true;
+    const bal = balances[opt.code];
+    return bal && bal.quota > 0;
+  });
+
   const selectedBalance = balances[type];
-  const isQuotaExhausted = selectedBalance && type !== "LWP" && selectedBalance.remaining === 0;
+  const isQuotaExhausted = selectedBalance && type !== "LWP" && selectedBalance.remaining <= 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,27 +103,38 @@ export default function LeaveForm({ selectedDate, onClose, onSuccess }: LeaveFor
       <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
         <div>
           <label className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 sm:mb-1.5">
-            Official Leave Policy Type
+            Applicable Leave Types
           </label>
-          <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-            {OFFICIAL_LEAVE_OPTIONS.map((opt) => (
-              <button
-                key={opt.code}
-                type="button"
-                onClick={() => setType(opt.code)}
-                className={`py-1.5 px-1 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold border transition-all flex flex-col items-center justify-center ${
-                  type === opt.code
-                    ? "bg-blue-600 border-blue-600 text-white shadow-sm scale-[1.02]"
-                    : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100"
-                }`}
-              >
-                <span className="truncate max-w-full">{opt.label}</span>
-                <span className={`text-[8px] sm:text-[10px] opacity-80 ${type === opt.code ? "text-blue-100" : "text-slate-400"}`}>
-                  {opt.tooltip}
-                </span>
-              </button>
-            ))}
-          </div>
+          
+          {isLoadingBalances ? (
+            <div className="py-4 text-center text-xs text-slate-400 animate-pulse">
+              Loading allocated leaves...
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+              {visibleOptions.map((opt) => {
+                const bal = balances[opt.code];
+                const subtext = opt.code === "LWP" ? "Unpaid" : `${bal?.quota || 0} days quota`;
+                return (
+                  <button
+                    key={opt.code}
+                    type="button"
+                    onClick={() => setType(opt.code)}
+                    className={`py-1.5 px-1 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold border transition-all flex flex-col items-center justify-center ${
+                      type === opt.code
+                        ? "bg-blue-600 border-blue-600 text-white shadow-sm scale-[1.02]"
+                        : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100"
+                    }`}
+                  >
+                    <span className="truncate max-w-full">{opt.label}</span>
+                    <span className={`text-[8px] sm:text-[10px] opacity-80 ${type === opt.code ? "text-blue-100" : "text-slate-400"}`}>
+                      {subtext}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Dynamic Balance Indicator Box */}
           {!isLoadingBalances && selectedBalance && (

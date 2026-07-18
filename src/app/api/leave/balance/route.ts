@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import Leave from "@/models/Leave";
+import UserLeaveBalance from "@/models/UserLeaveBalance";
 import * as jose from "jose";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +22,7 @@ export async function GET(request: Request) {
     const monthParam = searchParams.get("month"); // e.g., "2026-07"
     const currentMonth = new Date().toISOString().slice(0, 7);
     const periodMonth = monthParam || currentMonth;
+    const currentYear = periodMonth.slice(0, 4);
 
     await connectToDatabase();
 
@@ -38,7 +40,22 @@ export async function GET(request: Request) {
       date: { $regex: regexMonth },
     });
 
-    const monthlyQuota = 1;
+    // Fetch user's custom leave allocation
+    const userBalanceDoc = await UserLeaveBalance.findOne({
+      userId,
+      year: parseInt(currentYear), // use current year for total quota
+    }).lean();
+    
+    // Calculate estimated monthly quota from total annual paid leaves
+    let totalAnnualPaid = 0;
+    if (userBalanceDoc && userBalanceDoc.allocated) {
+      for (const val of Object.values(userBalanceDoc.allocated)) {
+        totalAnnualPaid += (val as number);
+      }
+    }
+    
+    // Default to at least 1 monthly quota if they have any annual leaves
+    const monthlyQuota = totalAnnualPaid > 0 ? Math.max(1, Math.round(totalAnnualPaid / 12)) : 1;
     const remainingBalance = Math.max(0, monthlyQuota - leavesTaken);
 
     return NextResponse.json(

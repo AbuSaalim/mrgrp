@@ -67,11 +67,10 @@ export default function LeaveBalancesWidget({ refreshTrigger = 0 }: LeaveBalance
   }
 
   const balances = data?.balances || {};
-  const mainCodes = ["CL", "SL", "EL"];
-  const mainCards = mainCodes.map((code) => balances[code]).filter(Boolean);
 
-  const secondaryCards = (data?.summaryList || []).filter(
-    (item) => !mainCodes.includes(item.code) && item.code !== "TL" && item.code !== "OTHER"
+  // Show only leave types that HR has allocated (quota > 0) or that have been used
+  const activeLeaves = (data?.summaryList || []).filter(
+    (item) => (item.quota > 0 || item.used > 0) && item.code !== "LWP"
   );
 
   return (
@@ -89,37 +88,27 @@ export default function LeaveBalancesWidget({ refreshTrigger = 0 }: LeaveBalance
             </div>
             <div>
               <h3 className="text-xs sm:text-lg font-extrabold text-white tracking-tight flex flex-wrap items-center gap-1.5 sm:gap-2">
-                Annual Leave Balances ({data?.year || new Date().getFullYear()})
+                Allocated Leave Balances ({data?.year || new Date().getFullYear()})
                 <span className="text-[8px] sm:text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
-                  Official Policy
+                  HR Allocated
                 </span>
               </h3>
             </div>
           </div>
           <p className="text-[9px] sm:text-xs text-slate-400 mt-0.5 pl-8 sm:pl-11">
-            Real-time balance tracking for Casual (CL), Sick (SL), and Earned/Privilege (EL) leave quotas.
+            Real-time tracking for custom leave quotas assigned by HR.
           </p>
         </div>
-
-        <button
-          onClick={() => setShowAllLeaves(!showAllLeaves)}
-          className="self-start sm:self-auto inline-flex items-center px-2 py-1 sm:px-3.5 sm:py-1.5 rounded-lg sm:rounded-xl bg-slate-900/60 hover:bg-slate-800 text-[10px] sm:text-xs font-bold text-slate-300 transition-all border border-slate-800 shadow-sm"
-        >
-          {showAllLeaves ? (
-            <>
-              Hide Special <ChevronUp className="ml-1 h-3 w-3 sm:ml-1.5 sm:h-3.5 sm:w-3.5" />
-            </>
-          ) : (
-            <>
-              View Special <ChevronDown className="ml-1 h-3 w-3 sm:ml-1.5 sm:h-3.5 sm:w-3.5" />
-            </>
-          )}
-        </button>
       </div>
 
-      {/* Main Accrued Leave Cards: CL, SL, EL */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-5 relative z-10">
-        {mainCards.map((card) => {
+      {/* Active Accrued Leave Cards */}
+      {activeLeaves.length === 0 ? (
+        <div className="p-6 text-center text-xs text-slate-400 bg-slate-900/50 rounded-2xl border border-slate-800">
+          No active leave quotas assigned by HR for this year yet.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 relative z-10">
+          {activeLeaves.map((card) => {
           const isZero = card.remaining === 0;
           const isLow = card.remaining <= 1 && !isZero;
 
@@ -256,34 +245,6 @@ export default function LeaveBalancesWidget({ refreshTrigger = 0 }: LeaveBalance
           );
         })}
       </div>
-
-      {/* Expandable Special Leaves Section */}
-      {showAllLeaves && (
-        <div className="mt-4 pt-4 sm:mt-6 sm:pt-6 border-t border-slate-800 animate-in fade-in slide-in-from-top-2">
-          <h4 className="text-[9px] sm:text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-2 sm:mb-3">
-            Special & Statutory Leave Quotas
-          </h4>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
-            {secondaryCards.map((item) => (
-              <div
-                key={item.code}
-                className="bg-slate-900/40 backdrop-blur-md rounded-lg sm:rounded-xl p-2 sm:p-3 border border-slate-800 hover:bg-slate-900/60 hover:border-slate-700 transition-all duration-300 flex flex-col justify-between"
-              >
-                <div className="flex justify-between items-start">
-                  <span className="text-[10px] sm:text-xs font-black text-white">{item.code}</span>
-                  <span className="text-[8px] sm:text-[10px] font-bold text-slate-400">{item.quota}d Max</span>
-                </div>
-                <p className="text-[9px] sm:text-[11px] font-medium text-slate-400 truncate mt-0.5">{item.name}</p>
-                <div className="mt-1.5 pt-1.5 border-t border-slate-800 flex justify-between items-center text-[9px] sm:text-xs">
-                  <span className="text-slate-400 text-[8px] sm:text-[10px]">Used: {item.used}d</span>
-                  <span className="font-bold text-emerald-400">
-                    Rem: {item.remaining}d
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       )}
     </div>
   );

@@ -12,7 +12,23 @@ import { AdjustmentsModal } from "./components/AdjustmentsModal";
 import { ConfirmDialog } from "./components/ConfirmDialog";
 import { Employee } from "./types";
 
+import { useState, useEffect } from "react";
+import { ShieldAlert } from "lucide-react";
+
 export default function PayrollDashboardPage() {
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) setCurrentUser(data);
+      })
+      .catch((err) => console.error("Auth check error:", err))
+      .finally(() => setIsCheckingAuth(false));
+  }, []);
+
   const {
     selectedMonth,
     setSelectedMonth,
@@ -44,6 +60,29 @@ export default function PayrollDashboardPage() {
     handleApplyAdjustment,
     handleLockPeriod,
   } = usePayroll();
+
+  const isSuperAdmin =
+    currentUser?.role === "Super Admin" ||
+    currentUser?.role?.includes("Super") ||
+    currentUser?.role?.includes("Admin");
+
+  if (isCheckingAuth) {
+    return <div className="p-8 text-center text-slate-500">Checking permissions...</div>;
+  }
+
+  if (!isSuperAdmin) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center">
+        <div className="p-4 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 mb-4">
+          <ShieldAlert className="h-10 w-10" />
+        </div>
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Access Restricted</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md">
+          Payroll Hub is restricted exclusively to Admin personnel. You do not have permission to view or manage enterprise payroll.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500 pb-12 min-h-screen bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-100 p-4 md:p-8 font-sans selection:bg-blue-500/20">

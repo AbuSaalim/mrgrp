@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import Leave, { OFFICIAL_LEAVE_POLICY } from "@/models/Leave";
+import UserLeaveBalance from "@/models/UserLeaveBalance";
 import * as jose from "jose";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +31,15 @@ export async function GET(request: Request) {
       date: { $regex: regexYear },
     }).lean();
 
+    // Fetch user's custom leave allocation
+    const userBalanceDoc = await UserLeaveBalance.findOne({
+      userId,
+      year: parseInt(targetYear),
+    }).lean();
+    
+    // Fallback to empty map if not found
+    const allocatedLeaves = userBalanceDoc?.allocated || {};
+
     const balances: Record<string, any> = {};
     const summaryList: any[] = [];
 
@@ -43,10 +53,11 @@ export async function GET(request: Request) {
 
       const used = approvedLeaves.length;
       const pending = pendingLeaves.length;
-      const quota = policy.annualQuota;
+      // Use dynamically allocated quota from HR. If none, it's 0.
+      const quota = code === "LWP" ? 365 : (allocatedLeaves[code] || 0);
       const remaining = code === "LWP" ? 365 : Math.max(0, quota - used);
       const isLowBalance = code !== "LWP" && remaining <= 1;
-      const percentageUsed = Math.min(100, Math.round((used / quota) * 100));
+      const percentageUsed = quota > 0 ? Math.min(100, Math.round((used / quota) * 100)) : 0;
 
       const balanceData = {
         code,

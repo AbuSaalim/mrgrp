@@ -57,8 +57,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       { name: "Staff", href: "/dashboard/hr/employees", icon: Users },
       { name: "Attendance", href: "/dashboard/hr/attendance", icon: FileClock },
       { name: "Leaves", href: "/dashboard/hr/leaves", icon: ClipboardList },
+      { name: "Leave Allocation", href: "/dashboard/hr/leave-allocation", icon: PenTool },
       { name: "Holidays", href: "/dashboard/hr/holidays", icon: CalendarDays },
-      { name: "Payroll", href: "/dashboard/hr/payroll", icon: Wallet },
     ];
 
     if (
@@ -78,7 +78,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {
           name: "HR Operations",
           icon: Briefcase,
-          children: hrItems.map((item, idx) => (idx === 0 ? { ...item, name: "HR Overview" } : item)),
+          children: [
+            ...hrItems.map((item, idx) => (idx === 0 ? { ...item, name: "HR Overview" } : item)),
+            { name: "Payroll", href: "/dashboard/hr/payroll", icon: Wallet },
+          ],
         },
       ];
     } else if (currentUser.role === "HR") {

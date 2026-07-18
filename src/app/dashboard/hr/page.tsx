@@ -83,14 +83,27 @@ export default function HROverviewDashboard() {
           </div>
         </Link>
 
-        {/* INDIGO THEME - PAYROLL HUB */}
-        <Link href="/dashboard/hr/payroll" className="group bg-white dark:bg-indigo-500/5 border border-slate-200 dark:border-indigo-500/40 p-5 sm:p-6 rounded-2xl shadow-sm hover:shadow-md dark:shadow-[0_0_15px_rgba(99,102,241,0.05)] dark:hover:shadow-[0_0_20px_rgba(99,102,241,0.15)] hover:bg-slate-50 dark:hover:bg-indigo-500/10 hover:border-indigo-300 dark:hover:border-indigo-500/80 transition-all duration-300 flex items-center justify-between">
+        {/* INDIGO THEME - PAYROLL HUB (Admin only) */}
+        {isSuperAdmin && (
+          <Link href="/dashboard/hr/payroll" className="group bg-white dark:bg-indigo-500/5 border border-slate-200 dark:border-indigo-500/40 p-5 sm:p-6 rounded-2xl shadow-sm hover:shadow-md dark:shadow-[0_0_15px_rgba(99,102,241,0.05)] dark:hover:shadow-[0_0_20px_rgba(99,102,241,0.15)] hover:bg-slate-50 dark:hover:bg-indigo-500/10 hover:border-indigo-300 dark:hover:border-indigo-500/80 transition-all duration-300 flex items-center justify-between">
+            <div>
+              <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 block uppercase tracking-widest mb-1.5">Calculation Engine</span>
+              <span className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white tracking-tight">Payroll <span className="text-sm font-medium text-slate-400 dark:text-slate-500 tracking-normal">Hub</span></span>
+            </div>
+            <div className="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 shadow-sm dark:shadow-[0_0_15px_rgba(99,102,241,0.2)] group-hover:scale-110 transition-transform duration-300">
+              <Wallet className="h-6 w-6 sm:h-7 sm:w-7 text-indigo-500 dark:text-indigo-400" />
+            </div>
+          </Link>
+        )}
+
+        {/* PURPLE THEME - LEAVE ALLOCATION */}
+        <Link href="/dashboard/hr/leave-allocation" className="group bg-white dark:bg-purple-500/5 border border-slate-200 dark:border-purple-500/40 p-5 sm:p-6 rounded-2xl shadow-sm hover:shadow-md dark:shadow-[0_0_15px_rgba(168,85,247,0.05)] dark:hover:shadow-[0_0_20px_rgba(168,85,247,0.15)] hover:bg-slate-50 dark:hover:bg-purple-500/10 hover:border-purple-300 dark:hover:border-purple-500/80 transition-all duration-300 flex items-center justify-between">
           <div>
-            <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 block uppercase tracking-widest mb-1.5">Calculation Engine</span>
-            <span className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white tracking-tight">Payroll <span className="text-sm font-medium text-slate-400 dark:text-slate-500 tracking-normal">Hub</span></span>
+            <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 block uppercase tracking-widest mb-1.5">Manage Quotas</span>
+            <span className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white tracking-tight">Leave <span className="text-sm font-medium text-slate-400 dark:text-slate-500 tracking-normal">Allocation</span></span>
           </div>
-          <div className="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 shadow-sm dark:shadow-[0_0_15px_rgba(99,102,241,0.2)] group-hover:scale-110 transition-transform duration-300">
-            <Wallet className="h-6 w-6 sm:h-7 sm:w-7 text-indigo-500 dark:text-indigo-400" />
+          <div className="p-3 rounded-xl bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-500/20 shadow-sm dark:shadow-[0_0_15px_rgba(168,85,247,0.2)] group-hover:scale-110 transition-transform duration-300">
+            <ClipboardList className="h-6 w-6 sm:h-7 sm:w-7 text-purple-500 dark:text-purple-400" />
           </div>
         </Link>
 
