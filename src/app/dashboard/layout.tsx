@@ -59,6 +59,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       { name: "Leaves", href: "/dashboard/hr/leaves", icon: ClipboardList },
       { name: "Leave Allocation", href: "/dashboard/hr/leave-allocation", icon: PenTool },
       { name: "Holidays", href: "/dashboard/hr/holidays", icon: CalendarDays },
+      { name: "Daily Wagers", href: "/dashboard/hr/daily-wagers", icon: HardHat },
     ];
 
     if (
@@ -101,6 +102,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: "DPR", href: "/dashboard/project/dpr", icon: HardHat },
         { name: "Requests", href: "/dashboard/project/request", icon: ShoppingCart },
         { name: "Certificates", href: "/dashboard/project/certificates", icon: FileText },
+        { name: "Daily Wagers", href: "/dashboard/hr/daily-wagers", icon: HardHat },
       ];
     }
     else if (currentUser.role === "Accounts") {

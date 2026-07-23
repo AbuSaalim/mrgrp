@@ -102,6 +102,14 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next(); // Allow Super Admin to access /dashboard and all HR paths
     }
 
+    // Allow Project role to access Daily Wagers
+    const isProjectRole = role.includes("Project");
+    const isDailyWagersPath = path.startsWith("/dashboard/hr/daily-wagers");
+
+    if (isProjectRole && isDailyWagersPath) {
+      return NextResponse.next();
+    }
+
     // Enforce strict boundaries: redirect if path does not match their assigned folder prefix
     const isAllowed = path === authorizedPath || path.startsWith(authorizedPath + "/");
     if (!isAllowed) {
