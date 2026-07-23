@@ -26,6 +26,7 @@ import { Toaster } from "sonner";
 
 import { ThemeProvider } from "@/components/ThemeProvider";
 import SplashScreen from "@/components/SplashScreen";
+import { Analytics } from "@vercel/analytics/react";
 
 export default function RootLayout({
   children,
@@ -44,6 +45,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <SplashScreen />
           {children}
+          <Analytics />
           <Toaster
             position="top-right"
             richColors
