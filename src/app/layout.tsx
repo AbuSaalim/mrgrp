@@ -16,15 +16,16 @@ export const metadata: Metadata = {
   title: "MR App",
   description: "Modern construction management software",
   icons: {
-    icon: "/fav.ico",
-    shortcut: "/fav.ico",
-    apple: "/fav.ico",
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
   },
 };
 
 import { Toaster } from "sonner";
 
 import { ThemeProvider } from "@/components/ThemeProvider";
+import SplashScreen from "@/components/SplashScreen";
 
 export default function RootLayout({
   children,
@@ -41,6 +42,7 @@ export default function RootLayout({
         style={{ fontFamily: 'var(--font-jakarta)' }} // Apply directly
       >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+          <SplashScreen />
           {children}
           <Toaster
             position="top-right"
