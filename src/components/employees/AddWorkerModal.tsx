@@ -104,10 +104,8 @@ export default function AddWorkerModal({ isOpen, onClose, onWorkerAdded }: AddWo
             >
               <option value="" disabled>Select Skill</option>
               <option value="Helper">Helper</option>
-              <option value="Mason">Mason</option>
-              <option value="Carpenter">Carpenter</option>
-              <option value="Electrician">Electrician</option>
-              <option value="Plumber">Plumber</option>
+              <option value="Welder">Welder</option>
+              <option value="Fitter">Fitter</option>
               <option value="Painter">Painter</option>
             </select>
           </div>
