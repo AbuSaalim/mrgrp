@@ -8,6 +8,7 @@ import {
   startRegistration,
   startAuthentication,
   browserSupportsWebAuthn,
+  platformAuthenticatorIsAvailable,
 } from "@simplewebauthn/browser";
 
 export default function LoginPage() {
@@ -44,10 +45,13 @@ export default function LoginPage() {
 
       const fallbackRedirect = data.redirectUrl || "/dashboard";
 
-      // Step 2: Check if browser supports WebAuthn / Biometrics
-      if (!browserSupportsWebAuthn()) {
+      // Step 2: Check if browser supports WebAuthn AND if biometric hardware (fingerprint sensor / Touch ID) is available on this device
+      const isSupported = browserSupportsWebAuthn();
+      const isAvailable = isSupported ? await platformAuthenticatorIsAvailable() : false;
+
+      if (!isSupported || !isAvailable) {
         toast.success("Login successful! Redirecting...");
-        router.push(fallbackRedirect);
+        window.location.href = fallbackRedirect;
         return;
       }
 
@@ -107,7 +111,7 @@ export default function LoginPage() {
         }
 
         // Proceed to dashboard after initial registration attempt (success or skip)
-        router.push(fallbackRedirect);
+        window.location.href = fallbackRedirect;
         return;
       }
 
@@ -128,7 +132,7 @@ export default function LoginPage() {
 
         if (verifyRes.ok) {
           toast.success("🛡️ Biometric verification successful!");
-          router.push(verifyData.redirectUrl || fallbackRedirect);
+          window.location.href = verifyData.redirectUrl || fallbackRedirect;
           return;
         } else {
           toast.error(verifyData.message || "Biometric 2FA verification failed.");
