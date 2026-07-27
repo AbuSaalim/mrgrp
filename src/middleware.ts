@@ -66,7 +66,8 @@ function getAuthorizedPathForRole(role: string): string {
   if (roleName.includes("Design")) {
     return "/dashboard/design";
   }
-  return "";
+  // Default fallback for custom or newly created roles so middleware doesn't delete token and reject them
+  return "/dashboard";
 }
 
 export async function middleware(request: NextRequest) {

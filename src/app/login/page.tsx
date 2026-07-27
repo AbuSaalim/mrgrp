@@ -8,7 +8,6 @@ import {
   startRegistration,
   startAuthentication,
   browserSupportsWebAuthn,
-  platformAuthenticatorIsAvailable,
 } from "@simplewebauthn/browser";
 
 export default function LoginPage() {
@@ -45,11 +44,8 @@ export default function LoginPage() {
 
       const fallbackRedirect = data.redirectUrl || "/dashboard";
 
-      // Step 2: Check if browser supports WebAuthn AND if biometric hardware (fingerprint sensor / Touch ID) is available on this device
-      const isSupported = browserSupportsWebAuthn();
-      const isAvailable = isSupported ? await platformAuthenticatorIsAvailable() : false;
-
-      if (!isSupported || !isAvailable) {
+      // Step 2: Check if browser supports WebAuthn
+      if (!browserSupportsWebAuthn()) {
         toast.success("Login successful! Redirecting...");
         window.location.href = fallbackRedirect;
         return;
