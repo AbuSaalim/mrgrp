@@ -110,8 +110,13 @@ export default function WorkerDailyViewPage() {
                   <User className="h-8 w-8" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">{data.worker.name}</h2>
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center gap-2.5">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">{data.worker.name}</h2>
+                    <span className="rounded bg-gray-100 px-2 py-0.5 font-mono text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400" title={data.worker._id}>
+                      #{data.worker._id.slice(-6).toUpperCase()}
+                    </span>
+                  </div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-0.5">
                     {data.worker.skill} • Rate: ₹{data.worker.perHourRate}/hr
                   </p>
                 </div>

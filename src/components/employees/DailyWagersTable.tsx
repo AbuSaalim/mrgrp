@@ -87,8 +87,13 @@ export default function DailyWagersTable({ workers, loading, onEdit, onView }: D
             <div key={worker._id} className="p-4 space-y-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
               <div className="flex justify-between items-start">
                 <div>
-                  <div className="font-medium text-gray-900 dark:text-white">{worker.name}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">{worker.skill} • ₹{worker.perHourRate}/hr</div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-900 dark:text-white">{worker.name}</span>
+                    <span className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[10px] font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400" title={worker._id}>
+                      #{worker._id.slice(-6).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{worker.skill} • ₹{worker.perHourRate}/hr</div>
                 </div>
                 <div>{getStatusBadge(worker.currentStatus)}</div>
               </div>
@@ -151,6 +156,7 @@ export default function DailyWagersTable({ workers, loading, onEdit, onView }: D
         <table className="w-full text-left text-sm text-gray-600 dark:text-gray-300">
           <thead className="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-800 dark:text-gray-400">
             <tr>
+              <th className="px-6 py-4 font-semibold">ID</th>
               <th className="px-6 py-4 font-semibold">Name & Skill</th>
               <th className="px-6 py-4 font-semibold">Current Site</th>
               <th className="px-6 py-4 font-semibold">Status</th>
@@ -165,6 +171,11 @@ export default function DailyWagersTable({ workers, loading, onEdit, onView }: D
           <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
             {workers.map((worker) => (
               <tr key={worker._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                <td className="px-6 py-4 font-mono text-xs font-medium text-gray-600 dark:text-gray-400">
+                  <span className="rounded bg-gray-100 px-2.5 py-1 dark:bg-gray-800" title={worker._id}>
+                    #{worker._id.slice(-6).toUpperCase()}
+                  </span>
+                </td>
                 <td className="px-6 py-4">
                   <div className="font-medium text-gray-900 dark:text-white">{worker.name}</div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">{worker.skill} • ₹{worker.perHourRate}/hr</div>

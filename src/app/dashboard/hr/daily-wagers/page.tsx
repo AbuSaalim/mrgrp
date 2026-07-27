@@ -75,7 +75,8 @@ export default function DailyWagersPage() {
   // Filter workers based on search query
   const filteredWorkers = workers.filter((worker: any) =>
     worker.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    worker.skill.toLowerCase().includes(searchQuery.toLowerCase())
+    worker.skill.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (worker._id && worker._id.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
@@ -108,7 +109,7 @@ export default function DailyWagersPage() {
           <input
             type="text"
             className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 pl-10 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500 outline-none transition-all"
-            placeholder="Search by name or skill..."
+            placeholder="Search by name, ID or skill..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
