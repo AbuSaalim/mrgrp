@@ -59,7 +59,7 @@ export async function POST(request: Request) {
 
     const options = await generateAuthenticationOptions({
       rpID,
-      allowCredentials,
+      allowCredentials: allowCredentials as any,
       userVerification: "preferred",
     });
 

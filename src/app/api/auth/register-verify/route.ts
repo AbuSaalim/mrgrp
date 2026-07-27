@@ -64,7 +64,7 @@ export async function POST(request: Request) {
       : [hostname, "localhost", "127.0.0.1"];
 
     const verification = await verifyRegistrationResponse({
-      response,
+      response: response as any,
       expectedChallenge: user.currentChallenge,
       expectedOrigin,
       expectedRPID,

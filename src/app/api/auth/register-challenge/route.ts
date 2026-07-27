@@ -74,11 +74,11 @@ export async function POST(request: Request) {
     const options = await generateRegistrationOptions({
       rpName: "MR Group",
       rpID,
-      userID: new Uint8Array(Buffer.from(user._id.toString())),
+      userID: new Uint8Array(Buffer.from(user._id.toString())) as any,
       userName: user.email,
       userDisplayName: user.name || user.email,
       attestationType: "none",
-      excludeCredentials,
+      excludeCredentials: excludeCredentials as any,
       authenticatorSelection: {
         residentKey: "preferred",
         userVerification: "preferred",

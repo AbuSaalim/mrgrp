@@ -103,7 +103,7 @@ export async function POST(request: Request) {
       expectedChallenge: user.currentChallenge,
       expectedOrigin,
       expectedRPID,
-      credential,
+      credential: credential as any,
     });
 
     if (!verification.verified || !verification.authenticationInfo) {

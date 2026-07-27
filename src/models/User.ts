@@ -19,6 +19,8 @@ export interface IUser extends Document {
   isActive: boolean;
   passkeys: IPasskey[];
   currentChallenge?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const PasskeySchema = new Schema<IPasskey>(
