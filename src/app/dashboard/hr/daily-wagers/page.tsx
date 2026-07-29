@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { PlusCircle, Search, Calendar as CalendarIcon, RefreshCw } from "lucide-react";
 import AddWorkerModal from "@/components/employees/AddWorkerModal";
+import EditWorkerModal from "@/components/employees/EditWorkerModal";
 import DailyWagersTable from "@/components/employees/DailyWagersTable";
 import LogActionModal from "@/components/employees/LogActionModal";
 import { format } from "date-fns";
@@ -15,8 +16,10 @@ export default function DailyWagersPage() {
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [selectedWorkerForAction, setSelectedWorkerForAction] = useState(null);
+  const [selectedWorkerForEdit, setSelectedWorkerForEdit] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [refreshKey, setRefreshKey] = useState(0);
@@ -55,6 +58,15 @@ export default function DailyWagersPage() {
 
   const handleWorkerAdded = () => {
     // Refresh the list when a new worker is added
+    setRefreshKey(prev => prev + 1);
+  };
+
+  const handleUpdateWorkerClick = (worker: any) => {
+    setSelectedWorkerForEdit(worker);
+    setIsEditModalOpen(true);
+  };
+
+  const handleWorkerUpdated = () => {
     setRefreshKey(prev => prev + 1);
   };
 
@@ -145,6 +157,7 @@ export default function DailyWagersPage() {
         workers={filteredWorkers} 
         loading={loading} 
         onEdit={handleEditWorker}
+        onUpdateWorker={handleUpdateWorkerClick}
         onView={handleViewWorker}
       />
 
@@ -153,6 +166,12 @@ export default function DailyWagersPage() {
         isOpen={isAddModalOpen} 
         onClose={() => setIsAddModalOpen(false)} 
         onWorkerAdded={handleWorkerAdded}
+      />
+      <EditWorkerModal 
+        isOpen={isEditModalOpen} 
+        onClose={() => setIsEditModalOpen(false)} 
+        onWorkerUpdated={handleWorkerUpdated}
+        worker={selectedWorkerForEdit}
       />
       <LogActionModal 
         isOpen={isLogModalOpen} 

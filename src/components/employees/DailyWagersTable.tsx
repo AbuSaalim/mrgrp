@@ -1,5 +1,5 @@
 import React from "react";
-import { Edit2, Eye, Clock, CheckCircle2, ArrowRightLeft, LogOut, AlertCircle } from "lucide-react";
+import { Edit2, Eye, Clock, CheckCircle2, ArrowRightLeft, LogOut, AlertCircle, UserCog } from "lucide-react";
 import { format } from "date-fns";
 
 interface WorkerSummary {
@@ -20,10 +20,11 @@ interface DailyWagersTableProps {
   workers: WorkerSummary[];
   loading: boolean;
   onEdit: (worker: WorkerSummary) => void;
+  onUpdateWorker: (worker: WorkerSummary) => void;
   onView: (worker: WorkerSummary) => void;
 }
 
-export default function DailyWagersTable({ workers, loading, onEdit, onView }: DailyWagersTableProps) {
+export default function DailyWagersTable({ workers, loading, onEdit, onUpdateWorker, onView }: DailyWagersTableProps) {
   const formatTime = (isoString: string | null) => {
     if (!isoString) return "-";
     return format(new Date(isoString), "hh:mm a");
@@ -140,6 +141,12 @@ export default function DailyWagersTable({ workers, loading, onEdit, onView }: D
                   <Eye className="h-4 w-4" /> View
                 </button>
                 <button
+                  onClick={() => onUpdateWorker(worker)}
+                  className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-orange-600 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-orange-400 transition-colors"
+                >
+                  <UserCog className="h-4 w-4" /> Info
+                </button>
+                <button
                   onClick={() => onEdit(worker)}
                   className="flex items-center gap-1.5 rounded-lg bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors"
                 >
@@ -211,9 +218,16 @@ export default function DailyWagersTable({ workers, loading, onEdit, onView }: D
                       <Eye className="h-4 w-4" />
                     </button>
                     <button
+                      onClick={() => onUpdateWorker(worker)}
+                      className="rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-orange-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-orange-400 transition-colors"
+                      title="Edit Info"
+                    >
+                      <UserCog className="h-4 w-4" />
+                    </button>
+                    <button
                       onClick={() => onEdit(worker)}
                       className="rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-green-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-green-400 transition-colors"
-                      title="Edit Details"
+                      title="Log Action"
                     >
                       <Edit2 className="h-4 w-4" />
                     </button>

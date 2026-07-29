@@ -86,3 +86,44 @@ export async function GET(
     return NextResponse.json({ message: "Internal Server Error", error: error.message }, { status: 500 });
   }
 }
+
+export async function PUT(
+  request: Request,
+  context: { params: Promise<{ id: string }> | { id: string } }
+) {
+  try {
+    const user = await authenticate(request);
+    if (!user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+    const resolvedParams = await context.params;
+    const workerId = resolvedParams.id;
+    if (!workerId) {
+      return NextResponse.json({ message: "Worker ID is required" }, { status: 400 });
+    }
+
+    const body = await request.json();
+    const { name, skill, perHourRate, currentStatus } = body;
+
+    await connectToDatabase();
+
+    const worker = await Worker.findById(workerId);
+    if (!worker) {
+      return NextResponse.json({ message: "Worker not found" }, { status: 404 });
+    }
+
+    if (name) worker.name = name;
+    if (skill) worker.skill = skill;
+    if (perHourRate !== undefined) worker.perHourRate = Number(perHourRate);
+    if (currentStatus === "Active" || currentStatus === "Inactive") {
+      worker.currentStatus = currentStatus;
+    }
+
+    await worker.save();
+
+    return NextResponse.json({ message: "Worker updated successfully", worker }, { status: 200 });
+
+  } catch (error: any) {
+    console.error("PUT Worker Update Error:", error);
+    return NextResponse.json({ message: "Internal Server Error", error: error.message }, { status: 500 });
+  }
+}
