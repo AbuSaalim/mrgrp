@@ -92,7 +92,7 @@ export default function DailyWagersPage() {
   );
 
   return (
-    <div className="p-6">
+    <div className="px-1 py-4 sm:p-6">
       <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Daily Wager Tracking</h1>
@@ -113,7 +113,7 @@ export default function DailyWagersPage() {
       </div>
 
       {/* Filters and Controls */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-xl bg-white p-4 shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-xl bg-white p-3 sm:p-4 shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
         <div className="relative w-full max-w-md">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
             <Search className="h-4 w-4 text-gray-400" />
@@ -155,7 +155,8 @@ export default function DailyWagersPage() {
       {/* Main Table Component */}
       <DailyWagersTable 
         workers={filteredWorkers} 
-        loading={loading} 
+        loading={loading}
+        userRole={userRole} 
         onEdit={handleEditWorker}
         onUpdateWorker={handleUpdateWorkerClick}
         onView={handleViewWorker}

@@ -19,12 +19,13 @@ interface WorkerSummary {
 interface DailyWagersTableProps {
   workers: WorkerSummary[];
   loading: boolean;
+  userRole?: string;
   onEdit: (worker: WorkerSummary) => void;
   onUpdateWorker: (worker: WorkerSummary) => void;
   onView: (worker: WorkerSummary) => void;
 }
 
-export default function DailyWagersTable({ workers, loading, onEdit, onUpdateWorker, onView }: DailyWagersTableProps) {
+export default function DailyWagersTable({ workers, loading, userRole = "", onEdit, onUpdateWorker, onView }: DailyWagersTableProps) {
   const formatTime = (isoString: string | null) => {
     if (!isoString) return "-";
     return format(new Date(isoString), "hh:mm a");
@@ -52,9 +53,7 @@ export default function DailyWagersTable({ workers, loading, onEdit, onUpdateWor
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-400">
-            <AlertCircle className="h-3 w-3" /> Not Logged In
-          </span>
+          <span className="text-gray-400 dark:text-gray-500 font-medium">-</span>
         );
     }
   };
@@ -84,14 +83,14 @@ export default function DailyWagersTable({ workers, loading, onEdit, onUpdateWor
       {/* Mobile view: Cards */}
       <div className="block md:hidden">
         <div className="divide-y divide-gray-200 dark:divide-gray-800">
-          {workers.map((worker) => (
-            <div key={worker._id} className="p-4 space-y-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+          {workers.map((worker, index) => (
+            <div key={worker._id} className="px-2.5 py-3 space-y-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
               <div className="flex justify-between items-start">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-gray-900 dark:text-white">{worker.name}</span>
-                    <span className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[10px] font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400" title={worker._id}>
-                      #{worker._id.slice(-6).toUpperCase()}
+                    <span className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[10px] font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400" title={`MongoDB ID: ${worker._id}`}>
+                      #{index + 1}
                     </span>
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{worker.skill} • ₹{worker.perHourRate}/hr</div>
@@ -133,22 +132,24 @@ export default function DailyWagersTable({ workers, loading, onEdit, onUpdateWor
                  </div>
               </div>
 
-              <div className="flex justify-end gap-2 border-t border-gray-100 dark:border-gray-800 pt-3">
+              <div className="flex justify-between gap-2 border-t border-gray-100 dark:border-gray-800 pt-3">
                 <button
                   onClick={() => onView(worker)}
-                  className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-blue-600 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-blue-400 transition-colors"
+                  className="flex flex-1 justify-center items-center gap-1.5 rounded-lg border border-gray-200 px-2 sm:px-4 py-2 text-[13px] sm:text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-blue-600 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-blue-400 transition-colors"
                 >
                   <Eye className="h-4 w-4" /> View
                 </button>
-                <button
-                  onClick={() => onUpdateWorker(worker)}
-                  className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-orange-600 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-orange-400 transition-colors"
-                >
-                  <UserCog className="h-4 w-4" /> Info
-                </button>
+                {(userRole.includes("HR") || userRole.includes("Super") || userRole.includes("Admin")) && (
+                  <button
+                    onClick={() => onUpdateWorker(worker)}
+                    className="flex flex-1 justify-center items-center gap-1.5 rounded-lg border border-gray-200 px-2 sm:px-4 py-2 text-[13px] sm:text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-orange-600 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-orange-400 transition-colors"
+                  >
+                    <UserCog className="h-4 w-4" /> Info
+                  </button>
+                )}
                 <button
                   onClick={() => onEdit(worker)}
-                  className="flex items-center gap-1.5 rounded-lg bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors"
+                  className="flex flex-1 justify-center items-center gap-1.5 rounded-lg bg-blue-50 px-2 sm:px-4 py-2 text-[13px] sm:text-sm font-medium text-blue-700 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors"
                 >
                   <Edit2 className="h-4 w-4" /> Action
                 </button>
@@ -176,11 +177,11 @@ export default function DailyWagersTable({ workers, loading, onEdit, onUpdateWor
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-            {workers.map((worker) => (
+            {workers.map((worker, index) => (
               <tr key={worker._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                 <td className="px-6 py-4 font-mono text-xs font-medium text-gray-600 dark:text-gray-400">
-                  <span className="rounded bg-gray-100 px-2.5 py-1 dark:bg-gray-800" title={worker._id}>
-                    #{worker._id.slice(-6).toUpperCase()}
+                  <span className="rounded bg-gray-100 px-2.5 py-1 dark:bg-gray-800" title={`MongoDB ID: ${worker._id}`}>
+                    #{index + 1}
                   </span>
                 </td>
                 <td className="px-6 py-4">
@@ -217,13 +218,15 @@ export default function DailyWagersTable({ workers, loading, onEdit, onUpdateWor
                     >
                       <Eye className="h-4 w-4" />
                     </button>
-                    <button
-                      onClick={() => onUpdateWorker(worker)}
-                      className="rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-orange-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-orange-400 transition-colors"
-                      title="Edit Info"
-                    >
-                      <UserCog className="h-4 w-4" />
-                    </button>
+                    {(userRole.includes("HR") || userRole.includes("Super") || userRole.includes("Admin")) && (
+                      <button
+                        onClick={() => onUpdateWorker(worker)}
+                        className="rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-orange-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-orange-400 transition-colors"
+                        title="Edit Info"
+                      >
+                        <UserCog className="h-4 w-4" />
+                      </button>
+                    )}
                     <button
                       onClick={() => onEdit(worker)}
                       className="rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-green-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-green-400 transition-colors"
