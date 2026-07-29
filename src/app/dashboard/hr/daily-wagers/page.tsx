@@ -93,34 +93,11 @@ export default function DailyWagersPage() {
 
   return (
     <div className="px-1 py-4 sm:p-6">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Daily Wager Tracking</h1>
-            <p className="mt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-              Manage daily wagers, their IN/OUT times, and calculate total pay.
-            </p>
-          </div>
-          {(userRole.includes("HR") || userRole.includes("Super") || userRole.includes("Admin")) && (
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              className="sm:hidden inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-700 transition-colors shrink-0 whitespace-nowrap"
-            >
-              <PlusCircle className="h-3.5 w-3.5" />
-              Add Worker
-            </button>
-          )}
-        </div>
-
-        {(userRole.includes("HR") || userRole.includes("Super") || userRole.includes("Admin")) && (
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="hidden sm:inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors dark:focus:ring-offset-gray-900 shrink-0"
-          >
-            <PlusCircle className="h-4 w-4" />
-            Add Worker
-          </button>
-        )}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Daily Wager Tracking</h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Manage daily wagers, their IN/OUT times, and calculate total pay.
+        </p>
       </div>
 
       {/* Filters and Controls */}
@@ -141,7 +118,7 @@ export default function DailyWagersPage() {
           />
         </div>
         
-        <div className="flex items-center gap-2 justify-between sm:justify-start">
+        <div className="flex items-center gap-2">
           <div className="relative flex-1 sm:w-[150px]">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 z-10">
               <CalendarIcon className="h-4 w-4 text-gray-400" />
@@ -163,6 +140,17 @@ export default function DailyWagersPage() {
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
+
+          {(userRole.includes("HR") || userRole.includes("Super") || userRole.includes("Admin")) && (
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors shrink-0"
+              title="Add Worker"
+            >
+              <PlusCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">Add Worker</span>
+            </button>
+          )}
         </div>
       </div>
 
