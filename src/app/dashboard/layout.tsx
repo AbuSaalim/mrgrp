@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, Settings, ShieldCheck, Package, ShoppingCart,
-  Briefcase, FileText, IndianRupee, PenTool, Megaphone, HardHat, FileClock, Wallet, ClipboardList, CalendarDays
+  Briefcase, FileText, IndianRupee, PenTool, Megaphone, HardHat, FileClock, Wallet, ClipboardList, CalendarDays, FolderOpen
 } from "lucide-react";
 
 import Sidebar from "@/components/dashboard/Sidebar";
@@ -54,6 +54,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (currentUser) {
     const hrItems = [
       { name: "Overview", href: "/dashboard/hr", icon: LayoutDashboard },
+      { name: "Documents", href: "/dashboard/hr/documents", icon: FolderOpen },
       { name: "Staff", href: "/dashboard/hr/employees", icon: Users },
       { name: "Attendance", href: "/dashboard/hr/attendance", icon: FileClock },
       { name: "Leaves", href: "/dashboard/hr/leaves", icon: ClipboardList },
