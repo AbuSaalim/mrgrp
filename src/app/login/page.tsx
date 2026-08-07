@@ -13,7 +13,7 @@ import {
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [statusText, setStatusText] = useState("Authenticating...");
-  const router = useRouter(); 
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -44,6 +44,12 @@ export default function LoginPage() {
 
       const fallbackRedirect = data.redirectUrl || "/dashboard";
 
+      // --- WEBAUTHN TEMPORARILY DISABLED ---
+      toast.success("Login successful! Redirecting...");
+      window.location.href = fallbackRedirect;
+      return;
+
+      /*
       // Step 2: Check if browser supports WebAuthn
       if (!browserSupportsWebAuthn()) {
         toast.success("Login successful! Redirecting...");
@@ -149,6 +155,7 @@ export default function LoginPage() {
         setIsLoading(false);
         return;
       }
+      */
     } catch (error) {
       console.error("Login request failed:", error);
       toast.error("Network error occurred. Please check your console.");
@@ -166,7 +173,7 @@ export default function LoginPage() {
 
       <div className="relative w-full max-w-md z-10 animate-in fade-in zoom-in-95 duration-500">
         <div className="rounded-3xl bg-[#0B1121]/70 backdrop-blur-2xl border border-slate-700/50 shadow-[0_0_50px_rgba(0,0,0,0.5)] p-8 sm:p-10 transition-all">
-          
+
           <div className="text-center mb-10 relative">
             <div className="mx-auto h-16 w-16 bg-slate-900/80 rounded-2xl flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(37,99,235,0.2)] border border-blue-500/30 relative group overflow-hidden">
               <div className="absolute inset-0 rounded-2xl bg-blue-500/20 blur-md group-hover:bg-blue-500/30 transition-all"></div>
@@ -178,14 +185,16 @@ export default function LoginPage() {
             <p className="text-slate-400 text-xs sm:text-sm font-medium tracking-wide mb-3">
               Authenticate to enter the mrgrp
             </p>
+            {/* WebAuthn temporarily disabled
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[11px] font-semibold">
               <Fingerprint className="h-3.5 w-3.5 animate-pulse" />
               <span>WebAuthn Biometric 2FA Ready</span>
             </div>
+            */}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            
+
             <div className="space-y-2">
               <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">
                 Corporate Email
@@ -241,9 +250,9 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-          
+
         </div>
-        
+
         <p className="text-center text-[10px] text-slate-600 mt-6 font-bold tracking-widest uppercase">
           Enterprise Resource Planning v1.0
         </p>
