@@ -104,6 +104,12 @@ export async function middleware(request: NextRequest) {
     }
 
     // Allow Project role to access Daily Wagers
+    // Allow Documents tab for all authenticated dashboard users
+    const isDocumentsPath = path === "/dashboard/documents" || path.startsWith("/dashboard/documents/") || path.endsWith("/documents");
+    if (isDocumentsPath) {
+      return NextResponse.next();
+    }
+
     const isProjectRole = role.includes("Project");
     const isDailyWagersPath = path.startsWith("/dashboard/hr/daily-wagers");
 

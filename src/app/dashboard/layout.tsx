@@ -54,7 +54,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (currentUser) {
     const hrItems = [
       { name: "Overview", href: "/dashboard/hr", icon: LayoutDashboard },
-      { name: "Documents", href: "/dashboard/hr/documents", icon: FolderOpen },
+      { name: "Documents", href: "/dashboard/store/documents", icon: FolderOpen },
       { name: "Staff", href: "/dashboard/hr/employees", icon: Users },
       { name: "Attendance", href: "/dashboard/hr/attendance", icon: FileClock },
       { name: "Leaves", href: "/dashboard/hr/leaves", icon: ClipboardList },
@@ -70,6 +70,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     ) {
       const superAdminItems = [
         { name: "Overview", href: "/dashboard/super-admin", icon: ShieldCheck },
+        { name: "Documents", href: "/dashboard/project/documents", icon: FolderOpen },
         { name: "Users", href: "/dashboard/super-admin/manage-users", icon: Users },
         { name: "Settings", href: "/dashboard/super-admin/settings", icon: Settings },
       ];
@@ -92,6 +93,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     else if (currentUser.role === "Store") {
       navItems = [
         { name: "Overview", href: "/dashboard/store", icon: LayoutDashboard },
+      { name: "Documents", href: "/dashboard/accounts/documents", icon: FolderOpen },
         { name: "Inventory", href: "/dashboard/store/inventory", icon: Package },
         { name: "Material Logs", href: "/dashboard/store/logs", icon: ClipboardList },
         { name: "Issue Material", href: "/dashboard/store/issue", icon: ShoppingCart },
@@ -100,6 +102,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     else if (currentUser.role === "Project") {
       navItems = [
         { name: "Overview", href: "/dashboard/project", icon: LayoutDashboard },
+      { name: "Documents", href: "/dashboard/marketing/documents", icon: FolderOpen },
         { name: "DPR", href: "/dashboard/project/dpr", icon: HardHat },
         { name: "Requests", href: "/dashboard/project/request", icon: ShoppingCart },
         { name: "Certificates", href: "/dashboard/project/certificates", icon: FileText },
@@ -109,6 +112,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     else if (currentUser.role === "Accounts") {
       navItems = [
         { name: "Overview", href: "/dashboard/accounts", icon: LayoutDashboard },
+      { name: "Documents", href: "/dashboard/design/documents", icon: FolderOpen },
         { name: "Billing", href: "/dashboard/accounts/billing", icon: FileText },
         { name: "Payments", href: "/dashboard/accounts/payments", icon: IndianRupee },
         { name: "Ledger", href: "/dashboard/accounts/ledger", icon: Wallet },
@@ -117,6 +121,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     else if (currentUser.role === "Marketing") {
       navItems = [
         { name: "Overview", href: "/dashboard/marketing", icon: LayoutDashboard },
+      { name: "Documents", href: "/dashboard/super-admin/documents", icon: FolderOpen },
         { name: "Leads", href: "/dashboard/marketing/leads", icon: Megaphone },
         { name: "Quotations", href: "/dashboard/marketing/quotations", icon: FileText },
       ];
@@ -124,6 +129,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     else if (currentUser.role === "Design") {
       navItems = [
         { name: "Overview", href: "/dashboard/design", icon: LayoutDashboard },
+      { name: "Documents", href: "/dashboard/hr/documents", icon: FolderOpen },
         { name: "Blueprints", href: "/dashboard/design/blueprints", icon: PenTool },
         { name: "BOQ", href: "/dashboard/design/boq", icon: FileText },
       ];
