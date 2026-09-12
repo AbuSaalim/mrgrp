@@ -54,13 +54,52 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (currentUser) {
     const hrItems = [
       { name: "Overview", href: "/dashboard/hr", icon: LayoutDashboard },
-      { name: "Documents", href: "/dashboard/store/documents", icon: FolderOpen },
+      { name: "Documents", href: "/dashboard/hr/documents", icon: FolderOpen },
       { name: "Staff", href: "/dashboard/hr/employees", icon: Users },
       { name: "Attendance", href: "/dashboard/hr/attendance", icon: FileClock },
       { name: "Leaves", href: "/dashboard/hr/leaves", icon: ClipboardList },
       { name: "Leave Allocation", href: "/dashboard/hr/leave-allocation", icon: PenTool },
       { name: "Holidays", href: "/dashboard/hr/holidays", icon: CalendarDays },
       { name: "Daily Wagers", href: "/dashboard/hr/daily-wagers", icon: HardHat },
+    ];
+
+    const storeItems = [
+      { name: "Overview", href: "/dashboard/store", icon: LayoutDashboard },
+      { name: "Documents", href: "/dashboard/store/documents", icon: FolderOpen },
+      { name: "Inventory", href: "/dashboard/store/inventory", icon: Package },
+      { name: "Material Logs", href: "/dashboard/store/logs", icon: ClipboardList },
+      { name: "Issue Material", href: "/dashboard/store/issue", icon: ShoppingCart },
+    ];
+
+    const projectItems = [
+      { name: "Overview", href: "/dashboard/project", icon: LayoutDashboard },
+      { name: "Documents", href: "/dashboard/project/documents", icon: FolderOpen },
+      { name: "DPR", href: "/dashboard/project/dpr", icon: HardHat },
+      { name: "Requests", href: "/dashboard/project/request", icon: ShoppingCart },
+      { name: "Certificates", href: "/dashboard/project/certificates", icon: FileText },
+      { name: "Daily Wagers", href: "/dashboard/hr/daily-wagers", icon: HardHat },
+    ];
+
+    const accountsItems = [
+      { name: "Overview", href: "/dashboard/accounts", icon: LayoutDashboard },
+      { name: "Documents", href: "/dashboard/accounts/documents", icon: FolderOpen },
+      { name: "Billing", href: "/dashboard/accounts/billing", icon: FileText },
+      { name: "Payments", href: "/dashboard/accounts/payments", icon: IndianRupee },
+      { name: "Ledger", href: "/dashboard/accounts/ledger", icon: Wallet },
+    ];
+
+    const marketingItems = [
+      { name: "Overview", href: "/dashboard/marketing", icon: LayoutDashboard },
+      { name: "Documents", href: "/dashboard/marketing/documents", icon: FolderOpen },
+      { name: "Leads", href: "/dashboard/marketing/leads", icon: Megaphone },
+      { name: "Quotations", href: "/dashboard/marketing/quotations", icon: FileText },
+    ];
+
+    const designItems = [
+      { name: "Overview", href: "/dashboard/design", icon: LayoutDashboard },
+      { name: "Documents", href: "/dashboard/design/documents", icon: FolderOpen },
+      { name: "Blueprints", href: "/dashboard/design/blueprints", icon: PenTool },
+      { name: "BOQ", href: "/dashboard/design/boq", icon: FileText },
     ];
 
     if (
@@ -70,7 +109,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     ) {
       const superAdminItems = [
         { name: "Overview", href: "/dashboard/super-admin", icon: ShieldCheck },
-        { name: "Documents", href: "/dashboard/project/documents", icon: FolderOpen },
+        { name: "Documents", href: "/dashboard/super-admin/documents", icon: FolderOpen },
         { name: "Users", href: "/dashboard/super-admin/manage-users", icon: Users },
         { name: "Settings", href: "/dashboard/super-admin/settings", icon: Settings },
       ];
@@ -86,53 +125,44 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             { name: "Payroll", href: "/dashboard/hr/payroll", icon: Wallet },
           ],
         },
+        {
+          name: "Project Management",
+          icon: HardHat,
+          children: projectItems.map((item, idx) => (idx === 0 ? { ...item, name: "Project Overview" } : item)),
+        },
+        {
+          name: "Store Management",
+          icon: Package,
+          children: storeItems.map((item, idx) => (idx === 0 ? { ...item, name: "Store Overview" } : item)),
+        },
+        {
+          name: "Accounts",
+          icon: IndianRupee,
+          children: accountsItems.map((item, idx) => (idx === 0 ? { ...item, name: "Accounts Overview" } : item)),
+        },
+        {
+          name: "Marketing",
+          icon: Megaphone,
+          children: marketingItems.map((item, idx) => (idx === 0 ? { ...item, name: "Marketing Overview" } : item)),
+        },
+        {
+          name: "Design",
+          icon: PenTool,
+          children: designItems.map((item, idx) => (idx === 0 ? { ...item, name: "Design Overview" } : item)),
+        }
       ];
-    } else if (currentUser.role === "HR") {
+    } else if (currentUser.role.includes("HR")) {
       navItems = hrItems;
-    }
-    else if (currentUser.role === "Store") {
-      navItems = [
-        { name: "Overview", href: "/dashboard/store", icon: LayoutDashboard },
-      { name: "Documents", href: "/dashboard/accounts/documents", icon: FolderOpen },
-        { name: "Inventory", href: "/dashboard/store/inventory", icon: Package },
-        { name: "Material Logs", href: "/dashboard/store/logs", icon: ClipboardList },
-        { name: "Issue Material", href: "/dashboard/store/issue", icon: ShoppingCart },
-      ];
-    }
-    else if (currentUser.role === "Project") {
-      navItems = [
-        { name: "Overview", href: "/dashboard/project", icon: LayoutDashboard },
-      { name: "Documents", href: "/dashboard/marketing/documents", icon: FolderOpen },
-        { name: "DPR", href: "/dashboard/project/dpr", icon: HardHat },
-        { name: "Requests", href: "/dashboard/project/request", icon: ShoppingCart },
-        { name: "Certificates", href: "/dashboard/project/certificates", icon: FileText },
-        { name: "Daily Wagers", href: "/dashboard/hr/daily-wagers", icon: HardHat },
-      ];
-    }
-    else if (currentUser.role === "Accounts") {
-      navItems = [
-        { name: "Overview", href: "/dashboard/accounts", icon: LayoutDashboard },
-      { name: "Documents", href: "/dashboard/design/documents", icon: FolderOpen },
-        { name: "Billing", href: "/dashboard/accounts/billing", icon: FileText },
-        { name: "Payments", href: "/dashboard/accounts/payments", icon: IndianRupee },
-        { name: "Ledger", href: "/dashboard/accounts/ledger", icon: Wallet },
-      ];
-    }
-    else if (currentUser.role === "Marketing") {
-      navItems = [
-        { name: "Overview", href: "/dashboard/marketing", icon: LayoutDashboard },
-      { name: "Documents", href: "/dashboard/super-admin/documents", icon: FolderOpen },
-        { name: "Leads", href: "/dashboard/marketing/leads", icon: Megaphone },
-        { name: "Quotations", href: "/dashboard/marketing/quotations", icon: FileText },
-      ];
-    }
-    else if (currentUser.role === "Design") {
-      navItems = [
-        { name: "Overview", href: "/dashboard/design", icon: LayoutDashboard },
-      { name: "Documents", href: "/dashboard/hr/documents", icon: FolderOpen },
-        { name: "Blueprints", href: "/dashboard/design/blueprints", icon: PenTool },
-        { name: "BOQ", href: "/dashboard/design/boq", icon: FileText },
-      ];
+    } else if (currentUser.role.includes("Store")) {
+      navItems = storeItems;
+    } else if (currentUser.role.includes("Project")) {
+      navItems = projectItems;
+    } else if (currentUser.role.includes("Accounts")) {
+      navItems = accountsItems;
+    } else if (currentUser.role.includes("Marketing")) {
+      navItems = marketingItems;
+    } else if (currentUser.role.includes("Design")) {
+      navItems = designItems;
     }
   }
 

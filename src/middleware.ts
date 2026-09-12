@@ -145,9 +145,29 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // 3. API Route Protection for /api/drive
+  if (path.startsWith("/api/drive")) {
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const payload = await verifyAndDecodeToken(token);
+    if (!payload) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const role = (payload.role as string) || "";
+    const userId = (payload.userId as string) || (payload.id as string) || "";
+
+    const response = NextResponse.next();
+    response.headers.set("x-user-role", role);
+    response.headers.set("x-user-id", userId);
+    return response;
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/", "/login", "/dashboard/:path*"],
+  matcher: ["/", "/login", "/dashboard/:path*", "/api/drive/:path*"],
 };

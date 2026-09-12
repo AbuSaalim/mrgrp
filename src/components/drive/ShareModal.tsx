@@ -1,31 +1,50 @@
 "use client";
 
-import { useState } from "react";
-import { X, Users } from "lucide-react";
-import { DriveItem } from "./FileExplorer";
+import { useState, useEffect } from "react";
+import { X, Users, Check } from "lucide-react";
+import { DriveItem } from "./types";
+import { toast } from "sonner";
+
+const DEPARTMENTS = ["HR", "Project", "Store", "Accounts", "Marketing", "Design"];
 
 export default function ShareModal({ 
   item, 
   onClose,
-  onShare
+  onSuccess
 }: { 
   item: DriveItem | null;
   onClose: () => void;
-  onShare: (item: DriveItem, shareWithId: string) => Promise<void>;
+  onSuccess: (updatedItem: DriveItem) => void;
 }) {
-  const [shareWithId, setShareWithId] = useState("");
-  const [isSharing, setIsSharing] = useState(false);
+  const [loadingRoles, setLoadingRoles] = useState<Record<string, boolean>>({});
 
   if (!item) return null;
 
-  const handleShare = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!shareWithId.trim()) return;
+  const handleToggleShare = async (role: string, isCurrentlyShared: boolean) => {
+    setLoadingRoles(prev => ({ ...prev, [role]: true }));
     
-    setIsSharing(true);
-    await onShare(item, shareWithId);
-    setIsSharing(false);
-    onClose();
+    try {
+      const action = isCurrentlyShared ? "unshare" : "share";
+      const res = await fetch("/api/drive/share", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemId: item._id, targetRole: role, action })
+      });
+
+      if (!res.ok) throw new Error("Failed to update sharing");
+      
+      const newSharedWith = isCurrentlyShared 
+        ? (item.sharedWith || []).filter(r => r !== role)
+        : [...(item.sharedWith || []), role];
+
+      const updatedItem = { ...item, sharedWith: newSharedWith };
+      onSuccess(updatedItem);
+      toast.success(`Successfully ${action}d with ${role}`);
+    } catch (error) {
+      toast.error("Failed to update sharing permissions");
+    } finally {
+      setLoadingRoles(prev => ({ ...prev, [role]: false }));
+    }
   };
 
   return (
@@ -33,7 +52,7 @@ export default function ShareModal({
       <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl w-full max-w-md overflow-hidden p-6 relative">
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 dark:text-gray-400 hover:text-slate-600 dark:hover:text-gray-200"
+          className="cursor-pointer absolute top-4 right-4 text-slate-400 dark:text-gray-400 hover:text-slate-600 dark:hover:text-gray-200"
         >
           <X size={20} />
         </button>
@@ -43,42 +62,58 @@ export default function ShareModal({
           Share "{item.name}"
         </h2>
 
-        {isSharing ? (
-          <div className="flex flex-col items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 dark:border-blue-500 mb-4"></div>
-            <p className="text-slate-500 dark:text-gray-400">Sharing in progress...</p>
-          </div>
-        ) : (
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">
-              Share with (Role or User ID)
-            </label>
-            <input 
-              type="text" 
-              placeholder="e.g. COUNSELOR, MANAGER, or ID"
-              className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white focus:border-blue-500 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-gray-500"
-              value={shareWithId}
-              onChange={(e) => setShareWithId(e.target.value)}
-              autoFocus
-            />
+        <div>
+          <p className="text-sm text-slate-600 dark:text-gray-300 mb-4">
+            Select departments to collaborate with. They will get access to this {item.type} and all its contents.
+          </p>
 
-            <div className="mt-8 flex justify-end gap-3">
-              <button 
-                onClick={onClose}
-                className="px-5 py-2 rounded-xl text-slate-600 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-slate-700 font-medium transition-colors"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={handleShare}
-                disabled={!shareWithId.trim()}
-                className="px-5 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              >
-                Share
-              </button>
-            </div>
+          <div className="space-y-2 mb-6 max-h-60 overflow-y-auto pr-2">
+            {DEPARTMENTS.map(role => {
+              // Hide the current owner role from the share list
+              if (item.role === role) return null;
+              
+              const isShared = item.sharedWith?.includes(role) || false;
+              const isLoading = loadingRoles[role] || false;
+
+              return (
+                <div 
+                  key={role} 
+                  className="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750 transition-colors"
+                >
+                  <span className="font-medium text-slate-800 dark:text-gray-200">{role}</span>
+                  <button
+                    onClick={() => handleToggleShare(role, isShared)}
+                    disabled={isLoading}
+                    className={`cursor-pointer px-4 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                      isShared 
+                        ? "bg-slate-100 text-slate-700 hover:bg-red-50 hover:text-red-600 dark:bg-slate-700 dark:text-gray-200 dark:hover:bg-red-900/30 dark:hover:text-red-400"
+                        : "bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-600 dark:hover:text-white"
+                    } disabled:opacity-50`}
+                  >
+                    {isLoading ? (
+                      <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+                    ) : isShared ? (
+                      <>
+                        <Check size={16} /> Shared
+                      </>
+                    ) : (
+                      "Share"
+                    )}
+                  </button>
+                </div>
+              );
+            })}
           </div>
-        )}
+
+          <div className="flex justify-end gap-3 mt-4">
+            <button 
+              onClick={onClose}
+              className="cursor-pointer px-5 py-2 rounded-xl bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-gray-200 hover:bg-slate-200 dark:hover:bg-slate-600 font-medium transition-colors"
+            >
+              Done
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

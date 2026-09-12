@@ -1,1 +1,5 @@
-export { default } from "@/app/dashboard/documents/page";
+import DrivePage from "@/components/drive/DrivePage";
+
+export default function Page() {
+  return <DrivePage department="Super Admin" />;
+}
