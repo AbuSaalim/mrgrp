@@ -19,6 +19,7 @@ interface ContextMenuProps {
   onDownload: (item: DriveItem) => void;
   onLockToggle?: (item: DriveItem) => void;
   onCopy: (item: DriveItem) => void;
+  onCut: (item: DriveItem) => void;
   onPaste: () => void;
   hasCopiedItem: boolean;
   copiedItemName: string | null;
@@ -37,6 +38,7 @@ export default function ContextMenu({
   onDownload,
   onLockToggle,
   onCopy,
+  onCut,
   onPaste,
   hasCopiedItem,
   copiedItemName,
@@ -178,6 +180,23 @@ export default function ContextMenu({
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
             Copy
+          </button>
+          
+          <button
+            onClick={() => {
+              if (!canEdit) return;
+              onClose();
+              if (contextMenu.item) onCut(contextMenu.item);
+            }}
+            disabled={!canEdit}
+            className={`w-full text-left px-3 py-1.5 text-sm flex items-center gap-2 ${
+              canEdit 
+                ? "cursor-pointer text-slate-700 dark:text-gray-200 hover:bg-slate-100 dark:hover:bg-slate-700" 
+                : "cursor-not-allowed text-slate-400 dark:text-slate-600 opacity-50"
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" x2="8.12" y1="4" y2="15.88"/><line x1="14.47" x2="20" y1="14.48" y2="20"/><line x1="8.12" x2="12" y1="8.12" y2="12"/></svg>
+            Cut
           </button>
           <button
             onClick={() => {

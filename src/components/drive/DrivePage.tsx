@@ -42,7 +42,7 @@ function DrivePageContent({ department }: { department: string }) {
   const [renameItem, setRenameItem] = useState<DriveItem | null>(null);
   const [deleteItem, setDeleteItem] = useState<DriveItem | null>(null);
   const [viewItem, setViewItem] = useState<DriveItem | null>(null);
-  const [copiedItem, setCopiedItem] = useState<DriveItem | null>(null);
+  const [clipboard, setClipboard] = useState<{ item: DriveItem; action: "copy" | "cut" } | null>(null);
   const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newFolderName, setNewFolderName] = useState("");
@@ -491,18 +491,30 @@ function DrivePageContent({ department }: { department: string }) {
   };
 
   const handleCopy = (item: DriveItem) => {
-    setCopiedItem(item);
+    setClipboard({ item, action: "copy" });
     toast.success(`Copied "${item.name}"`);
   };
 
+  const handleCut = (item: DriveItem) => {
+    setClipboard({ item, action: "cut" });
+    toast.success(`Cut "${item.name}"`);
+  };
+
   const handlePaste = async () => {
-    if (!copiedItem) return;
+    if (!clipboard) return;
+    const { item, action } = clipboard;
 
     const targetParentId = folderId === "null" ? null : folderId;
     
     // Check if pasting into itself
-    if (copiedItem._id === targetParentId) {
+    if (item._id === targetParentId) {
       toast.error("Cannot paste a folder into itself");
+      return;
+    }
+
+    if (action === "cut") {
+      await handleMoveItem(item._id, targetParentId || "null");
+      setClipboard(null);
       return;
     }
 
@@ -513,7 +525,7 @@ function DrivePageContent({ department }: { department: string }) {
       ...prev,
       {
         id: taskId,
-        name: `Copying ${copiedItem.name}...`,
+        name: `Copying ${item.name}...`,
         progress: 0,
         uploadedBytes: 0,
         totalBytes: 0,
@@ -527,7 +539,7 @@ function DrivePageContent({ department }: { department: string }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
-          itemId: copiedItem._id, 
+          itemId: item._id, 
           targetParentId,
           department
         }),
@@ -542,8 +554,9 @@ function DrivePageContent({ department }: { department: string }) {
         }
         
         setActiveTasks((prev) =>
-          prev.map((t) => (t.id === taskId ? { ...t, progress: 100, status: "success", name: `Copied ${copiedItem.name}` } : t))
+          prev.map((t) => (t.id === taskId ? { ...t, progress: 100, status: "success", name: `Copied ${item.name}` } : t))
         );
+        // Don't clear clipboard after copy, allows pasting multiple times.
       } else {
         const err = await res.json();
         toast.error(err.error || "Failed to copy item");
@@ -563,8 +576,7 @@ function DrivePageContent({ department }: { department: string }) {
         body: JSON.stringify({ parentId: targetFolderId }),
       });
       if (res.ok) {
-        const updatedItem = await res.json();
-        setItems((prev) => prev.map((i) => (i._id === updatedItem._id ? updatedItem : i)));
+        await fetchItems(); // Fetch fresh items to accurately reflect moves
         toast.success("Moved successfully");
       } else {
         toast.error("Failed to move item");
@@ -864,9 +876,10 @@ function DrivePageContent({ department }: { department: string }) {
         onDownload={handleDownload}
         onLockToggle={handleLockToggle}
         onCopy={handleCopy}
+        onCut={handleCut}
         onPaste={handlePaste}
-        hasCopiedItem={!!copiedItem}
-        copiedItemName={copiedItem?.name || null}
+        hasCopiedItem={!!clipboard}
+        copiedItemName={clipboard?.item.name || null}
         currentDepartment={department}
       />
 
