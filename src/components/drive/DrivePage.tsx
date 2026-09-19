@@ -512,6 +512,13 @@ function DrivePageContent({ department }: { department: string }) {
       return;
     }
 
+    // Prevent circular reference: Cannot paste a folder into its own subfolder
+    const isPastingIntoDescendant = breadcrumbs.some(b => b._id === item._id);
+    if (isPastingIntoDescendant) {
+      toast.error("Cannot paste a folder into its own subfolder");
+      return;
+    }
+
     if (action === "cut") {
       await handleMoveItem(item._id, targetParentId || "null");
       setClipboard(null);
@@ -607,6 +614,19 @@ function DrivePageContent({ department }: { department: string }) {
 
   const handleDownload = async (item: DriveItem) => {
     if (item.type === "folder") {
+      toast.info(`Checking folder size for ${item.name}...`);
+      try {
+        const checkRes = await fetch(`/api/drive/check-download?id=${item._id}`);
+        const checkData = await checkRes.json();
+        
+        if (!checkRes.ok || !checkData.allowed) {
+          toast.error(checkData.message || "Folder is too large to download at once. Please download files individually.");
+          return; // Stop here, don't download
+        }
+      } catch (error) {
+        toast.error("Error checking folder size.");
+        return;
+      }
       toast.info(`Preparing download for folder: ${item.name}...`);
     } else {
       toast.info(`Downloading file: ${item.name}...`);
