@@ -11,6 +11,7 @@ import {
 import Sidebar from "@/components/dashboard/Sidebar";
 import Header from "@/components/dashboard/Header";
 import BottomNav from "@/components/dashboard/BottomNav"; // 🚀 NEW IMPORT
+import GlobalChat from "@/components/chat/GlobalChat";
 
 interface CurrentUser {
   name: string;
@@ -204,6 +205,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* 🚀 NEW MOBILE BOTTOM NAV */}
       <BottomNav navItems={navItems} />
+
+      <GlobalChat />
     </div>
   );
 }
