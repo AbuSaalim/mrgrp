@@ -254,7 +254,7 @@ export default function GlobalChat() {
         onPointerUp={handlePointerUp}
         onClick={handleIconClick}
         style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
-        className={`fixed bottom-24 sm:bottom-6 left-4 sm:left-6 w-14 h-14 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-white shadow-xl touch-none z-[60] ${
+        className={`fixed bottom-24 sm:bottom-6 left-4 sm:left-auto sm:right-6 w-14 h-14 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-white shadow-xl touch-none z-[110] ${
           isDragging ? "cursor-grabbing scale-105" : "cursor-pointer hover:shadow-2xl hover:scale-105 transition-all duration-500 ease-out"
         }`}
       >
@@ -268,7 +268,7 @@ export default function GlobalChat() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed inset-0 sm:inset-auto sm:bottom-24 sm:left-6 w-full h-full sm:w-96 sm:h-[500px] bg-white dark:bg-slate-900 sm:rounded-2xl shadow-2xl border-0 sm:border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden z-[70] flex-shrink-0 animate-in slide-in-from-bottom-5">
+        <div className="fixed inset-0 sm:inset-auto sm:bottom-24 sm:right-6 w-full h-full sm:w-96 sm:h-[500px] bg-white dark:bg-slate-900 sm:rounded-2xl shadow-2xl border-0 sm:border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden z-[110] flex-shrink-0 animate-in slide-in-from-bottom-5">
           {/* Header */}
           <div className="bg-slate-50 dark:bg-slate-800 p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
             <div className="flex items-center gap-3">
