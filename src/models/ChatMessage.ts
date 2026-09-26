@@ -5,7 +5,9 @@ export interface IChatMessage extends Document {
   senderName: string;
   senderRole: string;
   message: string;
-  taggedRoles: string[];
+  targetRole: string; // "All" for global, or specific role name for private department chat
+  taggedRoles: string[]; // For tagging specific roles in Global chat
+  isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -16,7 +18,9 @@ const ChatMessageSchema = new Schema<IChatMessage>(
     senderName: { type: String, required: true },
     senderRole: { type: String, required: true },
     message: { type: String, required: true },
+    targetRole: { type: String, default: "All" },
     taggedRoles: { type: [String], default: [] },
+    isDeleted: { type: Boolean, default: false },
   },
   {
     timestamps: true,

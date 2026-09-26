@@ -27,9 +27,15 @@ export async function GET() {
     }
 
     // Role ko clean karna (e.g., "Store_abc@xyz.com" -> "Store")
-    const baseRole = (payload.role as string).split("_")[0];
+    let baseRole = payload.role as string;
+    if (baseRole.includes("Super") || baseRole.includes("System") || baseRole.includes("Admin")) {
+      baseRole = "Super Admin";
+    } else {
+      baseRole = baseRole.split("_")[0];
+    }
 
     return NextResponse.json({
+      id: user._id.toString(),
       name: user.name,
       email: user.email,
       role: baseRole,

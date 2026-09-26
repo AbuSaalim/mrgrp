@@ -18,12 +18,42 @@ async function getUserData(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
+    const userPayload = await getUserData(req);
+    if (!userPayload) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    let baseRole = userPayload.role as string;
+    if (baseRole.includes("Super") || baseRole.includes("System") || baseRole.includes("Admin")) {
+       baseRole = "Super Admin";
+    } else {
+       baseRole = baseRole.split("_")[0];
+    }
+
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const targetRole = searchParams.get("targetRole") || "All";
+    const limit = 50;
+    const skip = (page - 1) * limit;
+
     await connectToDatabase();
     
-    // Fetch last 100 messages sorted by createdAt ascending (oldest first for chat UI)
-    const messages = await ChatMessage.find()
+    let query: any = { targetRole: "All" };
+
+    if (targetRole !== "All") {
+       query = {
+         $or: [
+           { senderRole: baseRole, targetRole: targetRole },
+           { senderRole: targetRole, targetRole: baseRole }
+         ]
+       };
+    }
+
+    // Fetch messages sorted by createdAt ascending (oldest first for chat UI is reversed later)
+    const messages = await ChatMessage.find(query)
       .sort({ createdAt: -1 })
-      .limit(100)
+      .skip(skip)
+      .limit(limit)
       .lean();
     
     return NextResponse.json(messages.reverse());
@@ -40,28 +70,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { message, taggedRoles } = await req.json();
+    const { message, taggedRoles, targetRole } = await req.json();
 
     if (!message || message.trim() === "") {
       return NextResponse.json({ error: "Message cannot be empty" }, { status: 400 });
     }
 
     await connectToDatabase();
-
-    const senderRole = (userPayload.role as string) || "User";
     
-    // Strip "Admin" or "Super Admin" and normalize if needed, but since we are tagging roles, we use base role
-    // For simplicity, we just use the role from JWT directly, or split by underscore if it's "Department_Role"
-    let baseRole = senderRole;
-    if (senderRole !== "Super Admin" && senderRole !== "Admin") {
-       baseRole = senderRole.split("_")[0];
+    // Import User model if not already imported, but let's just use mongoose.model if needed
+    const mongoose = require("mongoose");
+    const User = mongoose.models.User || mongoose.model("User");
+    const user = await User.findById(userPayload.userId || userPayload.id).select("name");
+    const senderName = user?.name || "Unknown User";
+
+    let baseRole = userPayload.role as string;
+    if (baseRole.includes("Super") || baseRole.includes("System") || baseRole.includes("Admin")) {
+       baseRole = "Super Admin";
+    } else {
+       baseRole = baseRole.split("_")[0];
     }
 
     const newMessage = await ChatMessage.create({
       senderId: (userPayload.userId as string) || (userPayload.id as string),
-      senderName: (userPayload.name as string) || "Unknown User",
+      senderName: senderName,
       senderRole: baseRole,
       message: message.trim(),
+      targetRole: targetRole || "All",
       taggedRoles: Array.isArray(taggedRoles) ? taggedRoles : [],
     });
 
