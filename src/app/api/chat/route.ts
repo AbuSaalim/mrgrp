@@ -3,6 +3,7 @@ import { connectToDatabase } from "@/lib/mongodb";
 import ChatMessage from "@/models/ChatMessage";
 import { pusherServer } from "@/lib/pusher";
 import * as jose from "jose";
+import User from "@/models/User";
 
 async function getUserData(req: NextRequest) {
   const token = req.cookies.get("auth_token")?.value;
@@ -77,10 +78,6 @@ export async function POST(req: NextRequest) {
     }
 
     await connectToDatabase();
-    
-    // Import User model if not already imported, but let's just use mongoose.model if needed
-    const mongoose = require("mongoose");
-    const User = mongoose.models.User || mongoose.model("User");
     const user = await User.findById(userPayload.userId || userPayload.id).select("name");
     const senderName = user?.name || "Unknown User";
 
