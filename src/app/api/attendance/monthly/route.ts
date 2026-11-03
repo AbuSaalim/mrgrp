@@ -23,6 +23,12 @@ export async function GET(request: Request) {
 
     await connectToDatabase();
 
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+    await Attendance.updateMany(
+      { userId, date: { $lt: today }, status: "In Progress" },
+      { $set: { status: "Missed Out" } }
+    );
+
     // Create regex to match dates like "2026-06-XX"
     const datePattern = new RegExp(`^${year}-${month.padStart(2, '0')}`);
 

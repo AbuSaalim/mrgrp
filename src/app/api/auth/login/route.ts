@@ -64,7 +64,7 @@ export async function POST(request: Request) {
       permissions: role && role.permissions ? Array.from(role.permissions) : [],
     })
       .setProtectedHeader({ alg: "HS256" })
-      .setExpirationTime("24h")
+      .setExpirationTime("30d")
       .sign(secret);
 
     const response = NextResponse.json(
@@ -77,7 +77,8 @@ export async function POST(request: Request) {
       value: token,
       httpOnly: true,
       path: "/",
-      maxAge: 60 * 60 * 24, // 1 day
+      maxAge: 60 * 60 * 24 * 30, // 30 days session
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
     });
 

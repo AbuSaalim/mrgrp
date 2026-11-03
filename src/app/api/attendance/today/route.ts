@@ -15,11 +15,11 @@ export async function GET(request: Request) {
 
     await connectToDatabase();
 
-    // Aaj ki date nikalo YYYY-MM-DD format mein
-    const today = new Date().toLocaleDateString('en-CA'); // e.g., '2026-06-22'
+    // Aaj ki date nikalo YYYY-MM-DD format mein (Strict IST Timezone)
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
 
-    // Check if on leave today
-    const leaveRecord = await Leave.findOne({ userId, date: today });
+    // Check if on APPROVED leave today (Pending or Rejected should NOT block punch)
+    const leaveRecord = await Leave.findOne({ userId, date: today, status: "Approved" });
     if (leaveRecord) {
       return NextResponse.json({ 
         hasPunchedIn: false, 
@@ -37,8 +37,8 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({
-      hasPunchedIn: !!attendanceRecord.punchIn.time,
-      hasPunchedOut: !!attendanceRecord.punchOut.time,
+      hasPunchedIn: !!attendanceRecord.punchIn?.time,
+      hasPunchedOut: !!attendanceRecord.punchOut?.time,
       isOnLeave: false,
       record: attendanceRecord
     });

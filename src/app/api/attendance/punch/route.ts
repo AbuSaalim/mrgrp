@@ -20,32 +20,56 @@ export async function POST(request: Request) {
     }
 
     await connectToDatabase();
-    const today = new Date().toLocaleDateString('en-CA');
+    // Strict IST Timezone
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
     const currentTime = new Date();
 
+    // Auto-resolve any past unclosed shifts to "Missed Out"
+    await Attendance.updateMany(
+      { userId, date: { $lt: today }, status: "In Progress" },
+      { $set: { status: "Missed Out" } }
+    );
+
     if (action === "IN") {
-      // Create new record for today
+      const existing = await Attendance.findOne({ userId, date: today });
+      if (existing && existing.punchIn?.time) {
+        return NextResponse.json(
+          { message: "You have already punched in for today!", record: existing },
+          { status: 400 }
+        );
+      }
+
       const newRecord = await Attendance.findOneAndUpdate(
         { userId, date: today },
         {
           punchIn: { time: currentTime, location },
-          status: "In Progress" // Initial status, will become Missed Out if not punched out
+          status: "In Progress"
         },
         { new: true, upsert: true }
       );
       return NextResponse.json({ message: "Punched IN successfully", record: newRecord });
     } 
     else if (action === "OUT") {
-      // Update existing record
-      const updatedRecord = await Attendance.findOneAndUpdate(
-        { userId, date: today },
-        {
-          punchOut: { time: currentTime, location },
-          status: "Present" // Din successfully khatam!
-        },
-        { new: true }
-      );
-      return NextResponse.json({ message: "Punched OUT successfully", record: updatedRecord });
+      const existing = await Attendance.findOne({ userId, date: today });
+      if (!existing || !existing.punchIn?.time) {
+        return NextResponse.json(
+          { message: "You must punch in first before punching out!" },
+          { status: 400 }
+        );
+      }
+
+      if (existing.punchOut?.time) {
+        return NextResponse.json(
+          { message: "You have already punched out for today!", record: existing },
+          { status: 400 }
+        );
+      }
+
+      existing.punchOut = { time: currentTime, location };
+      existing.status = "Present";
+      await existing.save();
+
+      return NextResponse.json({ message: "Punched OUT successfully", record: existing });
     }
 
     return NextResponse.json({ message: "Invalid action" }, { status: 400 });

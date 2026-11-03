@@ -1,9 +1,29 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MapPin, Clock, CheckCircle, AlertTriangle, Fingerprint, CalendarDays } from "lucide-react";
+import { 
+  MapPin, 
+  Clock, 
+  CheckCircle, 
+  AlertTriangle, 
+  Fingerprint, 
+  CalendarDays,
+  RefreshCw,
+  Copy,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Smartphone,
+  WifiOff
+} from "lucide-react";
 import CalendarModal from "./attendance/CalendarModal";
-// import LeaveBalancesWidget from "./attendance/LeaveBalancesWidget";
+
+interface DiagnosticError {
+  code: "PERMISSION_DENIED" | "TIMEOUT" | "POSITION_UNAVAILABLE" | "OFFLINE" | "SERVER_ERROR" | "GENERIC";
+  title: string;
+  message: string;
+  guidance: string[];
+}
 
 export default function AttendanceCard() {
   const [isLoading, setIsLoading] = useState(true);
@@ -16,16 +36,21 @@ export default function AttendanceCard() {
   const [isOnLeave, setIsOnLeave] = useState(false);
   const [leaveStatus, setLeaveStatus] = useState("");
   
-  // Error handling
-  const [locationError, setLocationError] = useState("");
+  // Diagnostic error handling
+  const [diagnosticError, setDiagnosticError] = useState<DiagnosticError | null>(null);
+  const [showGuide, setShowGuide] = useState(true);
+  const [isCopied, setIsCopied] = useState(false);
 
   useEffect(() => {
     fetch("/api/attendance/today")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error("Unauthorized or server error");
+        return res.json();
+      })
       .then((data) => {
-        setHasPunchedIn(data.hasPunchedIn);
-        setHasPunchedOut(data.hasPunchedOut);
-        setIsOnLeave(data.isOnLeave);
+        setHasPunchedIn(Boolean(data.hasPunchedIn));
+        setHasPunchedOut(Boolean(data.hasPunchedOut));
+        setIsOnLeave(Boolean(data.isOnLeave));
         if (data.leaveStatus) setLeaveStatus(data.leaveStatus);
         setIsLoading(false);
       })
@@ -35,10 +60,17 @@ export default function AttendanceCard() {
       });
   }, []);
 
-  // 🚀 NEW: Helper function to get text address from coordinates
+  // 🚀 Helper function to get text address from coordinates with 4s timeout fallback
   const getAddressFromCoords = async (lat: number, lng: number) => {
     try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+        { signal: controller.signal }
+      );
+      clearTimeout(timeoutId);
       
       if (!response.ok) return "Map coordinates logged";
       
@@ -53,21 +85,67 @@ export default function AttendanceCard() {
       
       return "Map coordinates logged";
     } catch (error) {
-      console.error("Geocoding Error:", error);
       return "Map coordinates logged"; // Fallback so attendance doesn't fail
+    }
+  };
+
+  const handleCopyDiagnostic = () => {
+    if (!diagnosticError) return;
+    const isIOS = typeof window !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = typeof window !== "undefined" && /Android/.test(navigator.userAgent);
+    const deviceName = isIOS ? "Apple iPhone / iOS (Safari)" : isAndroid ? "Android Device (Chrome/Browser)" : "Desktop Browser";
+
+    const report = [
+      `🚨 *MR Group ERP - Attendance Error Report*`,
+      `• *Error Code:* [${diagnosticError.code}]`,
+      `• *Issue:* ${diagnosticError.title}`,
+      `• *Details:* ${diagnosticError.message}`,
+      `• *Device:* ${deviceName}`,
+      `• *Internet:* ${typeof navigator !== "undefined" && navigator.onLine ? "Connected (Online)" : "Disconnected (Offline)"}`,
+      `• *Time:* ${new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'medium', timeZone: 'Asia/Kolkata' }).format(new Date())}`,
+      `• *URL:* ${typeof window !== "undefined" ? window.location.href : "N/A"}`
+    ].join("\n");
+
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(report);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 3000);
     }
   };
 
   const handlePunch = async (action: "IN" | "OUT") => {
     setIsPunching(true);
-    setLocationError("");
+    setDiagnosticError(null);
 
-    // 1. Request Geolocation from Browser/Mobile
-    if (!navigator.geolocation) {
-      setLocationError("Geolocation is not supported by your device.");
+    // 0. Check Online Network Connectivity
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      setDiagnosticError({
+        code: "OFFLINE",
+        title: "No Internet Connection",
+        message: "Your phone is currently offline. Internet is required to securely submit attendance.",
+        guidance: [
+          "Check if your Mobile Data or Wi-Fi is switched ON.",
+          "Toggle Airplane Mode ON for 5 seconds and turn it OFF to refresh mobile signal.",
+          "Once internet is restored, tap 'Try Again'."
+        ]
+      });
       setIsPunching(false);
       return;
     }
+
+    // 1. Request Geolocation from Browser/Mobile
+    if (!navigator.geolocation) {
+      setDiagnosticError({
+        code: "GENERIC",
+        title: "Geolocation Unsupported",
+        message: "Your browser or device does not support GPS location tracking.",
+        guidance: ["Please open this application in Google Chrome or Apple Safari."]
+      });
+      setIsPunching(false);
+      return;
+    }
+
+    const isIOS = typeof window !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
@@ -75,13 +153,13 @@ export default function AttendanceCard() {
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
           
-          // 🚀 NEW: Fetch the real text address before sending to backend
+          // Fetch readable address with fallback
           const addressText = await getAddressFromCoords(latitude, longitude);
 
           const location = {
             latitude,
             longitude,
-            address: addressText // Backend me ab ye text save hoga!
+            address: addressText
           };
 
           // 2. Send Data to Backend API
@@ -96,19 +174,82 @@ export default function AttendanceCard() {
             if (action === "OUT") setHasPunchedOut(true);
           } else {
             const data = await res.json();
-            setLocationError(data.message || "Failed to punch. Please try again.");
+            setDiagnosticError({
+              code: "SERVER_ERROR",
+              title: "Punch Request Rejected",
+              message: data.message || "Failed to punch. Please try again.",
+              guidance: [
+                data.message || "Action could not be validated by server.",
+                "Ensure you have not already punched for this date.",
+                "If problem continues, tap 'Copy Report' below and send to Admin."
+              ]
+            });
           }
         } catch (err) {
-          setLocationError("Network error. Check your connection.");
+          setDiagnosticError({
+            code: "SERVER_ERROR",
+            title: "Network / Server Unreachable",
+            message: "Unable to connect to ERP server. Please verify your data connection.",
+            guidance: [
+              "Check your internet connectivity.",
+              "Wait 5 seconds and tap 'Try Again' button below."
+            ]
+          });
         } finally {
           setIsPunching(false);
         }
       },
       (error) => {
-        setLocationError("Strict Policy: Geolocation access is mandatory to mark attendance. Please allow location access in your browser/phone settings.");
+        if (error.code === error.PERMISSION_DENIED) {
+          setDiagnosticError({
+            code: "PERMISSION_DENIED",
+            title: "Location Permission Blocked on Device",
+            message: "This browser is blocked from accessing GPS location. Strict company policy requires verified site location.",
+            guidance: isIOS ? [
+              "In Safari, tap 'aA' (or Page Settings) in the bottom/top address bar.",
+              "Tap 'Website Settings' -> set 'Location' to 'Allow'.",
+              "Open iPhone Settings -> Privacy & Security -> Location Services -> Safari Websites -> choose 'While Using the App' & enable 'Precise Location'.",
+              "Make sure Safari is not in 'Private Browsing' mode, then tap 'Try Again'."
+            ] : [
+              "In Chrome, tap the 🔒 (Lock icon) in the top URL address bar.",
+              "Tap 'Permissions' -> set 'Location' to 'Allow'.",
+              "Open Phone Settings -> Apps -> Chrome -> Permissions -> Location -> choose 'Allow while using app' and turn ON 'Use precise location'.",
+              "Phone Settings -> Location -> Location Services -> turn ON 'Google Location Accuracy'."
+            ]
+          });
+        } else if (error.code === error.TIMEOUT) {
+          setDiagnosticError({
+            code: "TIMEOUT",
+            title: "GPS Satellite Lock Timed Out (>20s)",
+            message: "Your phone took longer than 20 seconds to acquire high-accuracy GPS coordinates.",
+            guidance: [
+              "If you are indoors or in a basement, step closer to a window, door, or open site area.",
+              "Turn ON 'Google Location Accuracy' (on Android) or 'Precise Location' (on iPhone).",
+              "Tip: Open Google Maps / Apple Maps for 3 seconds to jumpstart device GPS, then return and tap 'Try Again'."
+            ]
+          });
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          setDiagnosticError({
+            code: "POSITION_UNAVAILABLE",
+            title: "Phone GPS / Location is Turned OFF",
+            message: "Hardware GPS positioning is currently disabled on your device.",
+            guidance: [
+              "Pull down your phone's notification panel or Control Center.",
+              "Turn ON the main 'Location / GPS' toggle.",
+              "Ensure Battery Saver or Power Saving mode is not restricting GPS sensors."
+            ]
+          });
+        } else {
+          setDiagnosticError({
+            code: "GENERIC",
+            title: "Location Verification Failed",
+            message: error.message || "Could not retrieve GPS coordinates.",
+            guidance: ["Ensure GPS is enabled and tap 'Try Again'."]
+          });
+        }
         setIsPunching(false);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 30000 }
     );
   };
 
@@ -186,10 +327,81 @@ export default function AttendanceCard() {
           </div>
         </div>
 
-        {locationError && (
-          <div className="mt-6 p-4 bg-red-50 dark:bg-red-500/10 backdrop-blur-md rounded-xl border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400 text-sm font-semibold flex items-start animate-in fade-in slide-in-from-top-2">
-            <AlertTriangle className="h-5 w-5 mr-3 flex-shrink-0 mt-0.5" />
-            <p>{locationError}</p>
+        {diagnosticError && (
+          <div className="mt-6 p-4 sm:p-5 bg-rose-50 dark:bg-rose-950/30 backdrop-blur-md rounded-2xl border border-rose-200 dark:border-rose-500/30 text-rose-800 dark:text-rose-200 shadow-sm animate-in fade-in slide-in-from-top-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-rose-200/60 dark:border-rose-500/20 pb-3 mb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex-shrink-0">
+                  {diagnosticError.code === "OFFLINE" ? <WifiOff className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
+                </span>
+                <div>
+                  <h4 className="font-bold text-sm sm:text-base text-rose-900 dark:text-rose-100 flex items-center gap-2 flex-wrap">
+                    {diagnosticError.title}
+                    <span className="text-[10px] font-mono uppercase bg-rose-200/60 dark:bg-rose-900/60 text-rose-800 dark:text-rose-300 px-1.5 py-0.5 rounded font-bold">
+                      {diagnosticError.code}
+                    </span>
+                  </h4>
+                  <p className="text-xs text-rose-700/90 dark:text-rose-300/90 mt-0.5">
+                    {diagnosticError.message}
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={handleCopyDiagnostic}
+                  className="px-2.5 py-1.5 rounded-xl text-xs font-bold border border-rose-300 dark:border-rose-700 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-rose-700 dark:text-rose-300 transition-colors flex items-center gap-1.5 cursor-pointer"
+                  title="Copy technical diagnosis to send to Admin"
+                >
+                  {isCopied ? (
+                    <>
+                      <Check className="h-3.5 w-3.5 text-emerald-500" />
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3.5 w-3.5" />
+                      <span>Copy Report</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handlePunch(hasPunchedIn ? "OUT" : "IN")}
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  <span>Try Again</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Expandable Step-by-Step Fix Guide */}
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowGuide(!showGuide)}
+                className="w-full flex items-center justify-between text-xs font-bold text-rose-900/90 dark:text-rose-200 hover:text-rose-950 transition-colors py-1 cursor-pointer"
+              >
+                <span className="flex items-center gap-1.5">
+                  <Smartphone className="h-3.5 w-3.5 text-rose-500" />
+                  How to fix this on your phone:
+                </span>
+                {showGuide ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </button>
+
+              {showGuide && (
+                <ul className="mt-2.5 space-y-1.5 text-xs text-rose-800 dark:text-rose-200/90 pl-5 list-disc font-medium">
+                  {diagnosticError.guidance.map((step, idx) => (
+                    <li key={idx} className="leading-relaxed">
+                      {step}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         )}
       </div>

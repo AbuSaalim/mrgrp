@@ -19,7 +19,7 @@ export interface IAttendance extends Document {
             address: string | null;
         };
     };
-    status: "In Progress" | "Present" | "Absent" | "Missed Out";
+    status: "In Progress" | "Present" | "Absent" | "Missed Out" | "Half Day" | "Weekly Off";
     isEditedByHR: boolean;
     hrNotes: string;
 }
@@ -49,7 +49,7 @@ const AttendanceSchema = new Schema<IAttendance>(
 
         status: {
             type: String,
-            enum: ["Present", "Absent", "In Progress", "Missed Out"],
+            enum: ["Present", "Absent", "In Progress", "Missed Out", "Half Day", "Weekly Off"],
             default: "In Progress"
         },
         isEditedByHR: { type: Boolean, default: false },

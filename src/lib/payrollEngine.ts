@@ -138,6 +138,20 @@ export async function calculateEmployeePayrollForMonth(
           }
         }
       }
+    } else if (record.status === "Half Day") {
+      totalPresentDays += 0.5;
+      const halfShiftHours = standardShiftHours / 2;
+      if (record.punchIn?.time && record.punchOut?.time) {
+        const pin = new Date(record.punchIn.time).getTime();
+        const pout = new Date(record.punchOut.time).getTime();
+        if (pout > pin) {
+          let dailyHours = (pout - pin) / (1000 * 60 * 60);
+          dailyHours = Math.max(0, Math.min(dailyHours, 24));
+          totalWorkingHours += dailyHours;
+        }
+      } else {
+        totalWorkingHours += halfShiftHours;
+      }
     } else if (record.status === "Absent") {
       // If the absent mark falls on a declared Public Holiday, do NOT count it as a penalized absent day
       const isHoliday = activeHolidays.some((h: any) => h.dateString === record.date);

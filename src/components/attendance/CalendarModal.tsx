@@ -89,6 +89,9 @@ export default function CalendarModal({ isOpen, onClose }: CalendarModalProps) {
     const att = attendances.find(a => a.date === formattedDate);
     if (att) {
       if (att.status === "Present") return { type: "present", data: att };
+      if (att.status === "In Progress" && formattedDate === todayFormatted) {
+        return { type: "in-progress", data: att };
+      }
       if (att.status === "Missed Out" || att.status === "In Progress") return { type: "missed", data: att };
     }
 
@@ -105,8 +108,8 @@ export default function CalendarModal({ isOpen, onClose }: CalendarModalProps) {
       return;
     }
 
-    // 🚀 NAYA LOGIC: Agar record hai toh View Popup dikhao
-    if (status.type === "present" || status.type === "missed") {
+    // 🚀 Agar record hai toh View Popup dikhao
+    if (status.type === "present" || status.type === "missed" || status.type === "in-progress") {
       setViewingRecord({ date: formattedDate, data: status.data });
     } 
     // Agar future/today date khali hai, toh leave apply karne do
@@ -208,9 +211,10 @@ export default function CalendarModal({ isOpen, onClose }: CalendarModalProps) {
             {/* Legend */}
             <div className="mb-3 sm:mb-6 flex flex-wrap gap-1.5 sm:gap-4 text-[8px] sm:text-xs font-semibold text-slate-600 dark:text-slate-400 justify-center sm:justify-start">
               <span className="flex items-center"><div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-emerald-500 mr-1 sm:mr-1.5"></div> Present</span>
+              <span className="flex items-center"><div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-blue-500 mr-1 sm:mr-1.5 animate-pulse"></div> Active Shift</span>
               <span className="flex items-center"><div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-purple-500 mr-1 sm:mr-1.5"></div> Public Holiday</span>
               <span className="flex items-center"><div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-rose-500 mr-1 sm:mr-1.5"></div> Missed Out</span>
-              <span className="flex items-center"><div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-blue-500 mr-1 sm:mr-1.5"></div> Approved Leave</span>
+              <span className="flex items-center"><div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-blue-400 mr-1 sm:mr-1.5"></div> Approved Leave</span>
               <span className="flex items-center"><div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-yellow-500 mr-1 sm:mr-1.5"></div> Pending Leave</span>
             </div>
 
@@ -251,6 +255,9 @@ export default function CalendarModal({ isOpen, onClose }: CalendarModalProps) {
                   if (status.type === "present") {
                     bgClass = "bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 shadow-sm";
                     icon = <CheckCircle className="h-2.5 w-2.5 sm:h-4 sm:w-4 text-emerald-500 mt-0.5 sm:mt-2" />;
+                  } else if (status.type === "in-progress") {
+                    bgClass = "bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30 shadow-sm";
+                    icon = <Clock className="h-2.5 w-2.5 sm:h-4 sm:w-4 text-blue-500 mt-0.5 sm:mt-2 animate-pulse" />;
                   } else if (status.type === "holiday") {
                     bgClass = "bg-purple-50 dark:bg-purple-500/20 border-purple-300 dark:border-purple-500/40 shadow-sm";
                     icon = (
@@ -290,7 +297,7 @@ export default function CalendarModal({ isOpen, onClose }: CalendarModalProps) {
                           <span className="text-[7px] sm:text-xs font-bold text-white">Apply</span>
                         </div>
                       )}
-                      {(status.type === "present" || status.type === "missed") && (
+                      {(status.type === "present" || status.type === "missed" || status.type === "in-progress") && (
                         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800/90 rounded-lg sm:rounded-2xl">
                           <span className="text-[7px] sm:text-xs font-bold text-white flex items-center"><Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1"/> Log</span>
                         </div>

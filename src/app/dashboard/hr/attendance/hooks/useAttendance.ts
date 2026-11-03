@@ -114,6 +114,22 @@ export function useAttendance() {
             "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-500/20 shadow-sm dark:shadow-none",
           icon: "text-blue-600 dark:text-blue-400",
         };
+      case "Half Day":
+        return {
+          wrapper:
+            "border-amber-500/30 dark:border-amber-500/40 hover:border-amber-500/80 hover:bg-amber-50 dark:hover:bg-amber-500/10 shadow-[0_0_15px_rgba(245,158,11,0.05)]",
+          badge:
+            "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-500/20 shadow-sm dark:shadow-none",
+          icon: "text-amber-600 dark:text-amber-400",
+        };
+      case "Weekly Off":
+        return {
+          wrapper:
+            "border-purple-500/30 dark:border-purple-500/40 hover:border-purple-500/80 hover:bg-purple-50 dark:hover:bg-purple-500/10 shadow-[0_0_15px_rgba(168,85,247,0.05)]",
+          badge:
+            "bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-500/20 shadow-sm dark:shadow-none",
+          icon: "text-purple-600 dark:text-purple-400",
+        };
       default:
         return {
           wrapper:
