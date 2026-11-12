@@ -27,6 +27,43 @@ interface UserData {
 
 const ROLES = ["Super Admin", "HR", "Accounts", "Design", "Store", "Project", "Marketing"];
 
+const getDateLabel = (dateStr: string) => {
+  const messageDate = new Date(dateStr);
+  const today = new Date();
+  
+  const msgIST = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(messageDate);
+  const todayIST = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(today);
+  
+  const yesterdayDate = new Date(today);
+  yesterdayDate.setDate(today.getDate() - 1);
+  const yesterdayIST = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(yesterdayDate);
+
+  if (msgIST === todayIST) return "Today";
+  if (msgIST === yesterdayIST) return "Yesterday";
+
+  return new Intl.DateTimeFormat('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'Asia/Kolkata',
+  }).format(messageDate);
+};
+
+const isDifferentDay = (date1: string, date2: string) => {
+  const d1 = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date(date1));
+  const d2 = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date(date2));
+  return d1 !== d2;
+};
+
+const formatMessageTime = (dateStr: string) => {
+  return new Intl.DateTimeFormat('en-IN', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Asia/Kolkata',
+  }).format(new Date(dateStr));
+};
+
 export default function GlobalChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -42,9 +79,14 @@ export default function GlobalChat() {
   const targetRoleRef = useRef(targetRole);
   const isOpenRef = useRef(isOpen);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const userDataRef = useRef(userData);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isFetching, setIsFetching] = useState(false);
+
+  useEffect(() => {
+    userDataRef.current = userData;
+  }, [userData]);
 
   // Tagging State
   const [showTagMenu, setShowTagMenu] = useState(false);
@@ -115,7 +157,7 @@ export default function GlobalChat() {
     loadMessages();
   }, [targetRole, page]);
 
-  // Set up Pusher
+  // Set up Pusher - only once on mount with stable ref
   useEffect(() => {
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_APP_KEY!, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
@@ -124,14 +166,14 @@ export default function GlobalChat() {
     const channel = pusher.subscribe("global-chat");
     
     const handleNewMessage = (newMsg: ChatMessage) => {
-      const myRole = userData?.role || "";
+      const currentRole = userDataRef.current?.role || "";
       let shouldShow = false;
 
       // Filter if the message belongs in the current active view
       if (targetRoleRef.current === "All") {
          if (newMsg.targetRole === "All") shouldShow = true;
       } else {
-         if (newMsg.targetRole === targetRoleRef.current || (newMsg.targetRole === myRole && newMsg.senderRole === targetRoleRef.current)) {
+         if (newMsg.targetRole === targetRoleRef.current || (newMsg.targetRole === currentRole && newMsg.senderRole === targetRoleRef.current)) {
             shouldShow = true;
          }
       }
@@ -144,19 +186,20 @@ export default function GlobalChat() {
         setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
       }
 
-      const isMyOwnMessage = newMsg.senderId.toString() === (userData?.userId || userData?.id)?.toString();
+      const myId = (userDataRef.current?.userId || userDataRef.current?.id)?.toString();
+      const isMyOwnMessage = myId && newMsg.senderId?.toString() === myId;
       if (isMyOwnMessage) return;
 
       // Badges & Notifications
       if (newMsg.targetRole === "All") {
          if (!isOpenRef.current || targetRoleRef.current !== "All") {
             setUnreadByRole(prev => ({ ...prev, "All": (prev["All"] || 0) + 1 }));
-            const isMentioned = newMsg.taggedRoles.includes(myRole);
+            const isMentioned = newMsg.taggedRoles.includes(currentRole);
             toast(`Global Chat${isMentioned ? ' (Mention)' : ''}: ${newMsg.senderName}`, {
                icon: <MessageSquare size={16} className="text-blue-500" />
             });
          }
-      } else if (newMsg.targetRole === myRole) {
+      } else if (newMsg.targetRole === currentRole) {
          if (!isOpenRef.current || targetRoleRef.current !== newMsg.senderRole) {
             setUnreadByRole(prev => ({ ...prev, [newMsg.senderRole]: (prev[newMsg.senderRole] || 0) + 1 }));
             toast(`Private message from ${newMsg.senderName}`, {
@@ -175,8 +218,8 @@ export default function GlobalChat() {
     });
 
     const handleTyping = (data: { senderRole: string, targetRole: string, isTyping: boolean }) => {
-      const myRole = userData?.role || "";
-      if (data.targetRole === targetRoleRef.current && data.senderRole !== myRole) {
+      const currentRole = userDataRef.current?.role || "";
+      if (data.targetRole === targetRoleRef.current && data.senderRole !== currentRole) {
          setTypingRoles(prev => {
             if (data.isTyping && !prev.includes(data.senderRole)) return [...prev, data.senderRole];
             if (!data.isTyping) return prev.filter(r => r !== data.senderRole);
@@ -188,10 +231,12 @@ export default function GlobalChat() {
 
     return () => {
       channel.unbind("new-message", handleNewMessage);
+      channel.unbind("delete-message");
       channel.unbind("user-typing", handleTyping);
       pusher.unsubscribe("global-chat");
+      pusher.disconnect();
     };
-  }, [userData]);
+  }, []);
 
   const handleTargetSelect = (role: string) => {
     setTargetRole(role);
@@ -221,7 +266,14 @@ export default function GlobalChat() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: messageToSend, taggedRoles: tags, targetRole }),
       });
-      if (!res.ok) {
+      if (res.ok) {
+        const sentMsg = await res.json();
+        setMessages((prev) => {
+          if (prev.some((m) => m._id === sentMsg._id)) return prev;
+          return [...prev, sentMsg];
+        });
+        setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 30);
+      } else {
         setInputText(messageToSend);
         toast.error("Failed to send message");
       }
@@ -483,76 +535,93 @@ export default function GlobalChat() {
                </div>
             )}
 
-            {messages.map((msg) => {
-              const isMe = userData?.role === msg.senderRole && userData?.name === msg.senderName;
-              const isMentioned = userData && msg.taggedRoles.includes(userData.role);
+            {messages.map((msg, index) => {
+              const isMe = (userData?.role === msg.senderRole && userData?.name === msg.senderName) ||
+                           (Boolean(userData && msg.senderId && (userData.userId === msg.senderId || userData.id === msg.senderId)));
+              const isMentioned = Boolean(userData && msg.taggedRoles && msg.taggedRoles.includes(userData.role));
               const canDelete = isMe || userData?.role === "Super Admin";
+              const showDateDivider = index === 0 || isDifferentDay(messages[index - 1].createdAt, msg.createdAt);
 
               return (
-                <div key={msg._id} className={`flex flex-col group ${isMe ? "items-end" : "items-start"}`}>
-                  <div className="flex items-center gap-1.5 mb-1 mx-1">
-                    <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">{msg.senderRole}</span>
-                    {!isMe && <span className="text-[11px] text-slate-400">{msg.senderName}</span>}
-                  </div>
-                  
-                  <div className="flex items-end gap-2 relative">
-                    {canDelete && !msg.isDeleted && isMe && (
-                      <button 
-                        onClick={() => setDeletingMsgId(msg._id)} 
-                        className="opacity-0 group-hover:opacity-100 p-1 mb-1 text-slate-300 hover:text-red-500 transition-opacity rounded-full hover:bg-red-50 dark:hover:bg-red-900/20"
-                        title="Delete message"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    )}
-                    
-                    <div 
-                      className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl text-[12px] leading-relaxed shadow-sm relative ${
-                        msg.isDeleted 
-                          ? "bg-slate-100/50 dark:bg-slate-800/30 text-slate-400 dark:text-slate-500 italic rounded-tr-sm border border-slate-200/50 dark:border-slate-700/30"
-                          : isMe 
-                          ? "bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 rounded-tr-sm" 
-                          : isMentioned && targetRole === "All"
-                            ? "bg-amber-50/80 dark:bg-amber-900/30 text-slate-800 dark:text-amber-100 border border-amber-200/50 dark:border-amber-700/30 rounded-tl-sm ring-1 ring-amber-400/20" 
-                            : "bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 border border-slate-200/50 dark:border-slate-700/50 rounded-tl-sm"
-                      }`}
-                    >
-                      {msg.isDeleted ? msg.message : renderMessageContent(msg.message)}
+                <React.Fragment key={msg._id}>
+                  {showDateDivider && (
+                    <div className="flex items-center justify-center my-3 select-none">
+                      <div className="bg-slate-200/70 dark:bg-slate-800/80 backdrop-blur-md border border-slate-300/40 dark:border-slate-700/60 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 shadow-sm">
+                        {getDateLabel(msg.createdAt)}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className={`flex flex-col group ${isMe ? "items-end" : "items-start"}`}>
+                    <div className="flex items-center gap-1.5 mb-1 mx-1">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{msg.senderRole}</span>
+                      {!isMe && <span className="text-[11px] font-medium text-slate-400">{msg.senderName}</span>}
                     </div>
                     
-                    {canDelete && !msg.isDeleted && !isMe && (
-                       <button 
-                        onClick={() => setDeletingMsgId(msg._id)} 
-                        className="opacity-0 group-hover:opacity-100 p-1 mb-1 text-slate-300 hover:text-red-500 transition-opacity rounded-full hover:bg-red-50 dark:hover:bg-red-900/20"
-                        title="Delete (Admin)"
+                    <div className="flex items-end gap-2 relative">
+                      {canDelete && !msg.isDeleted && isMe && (
+                        <button 
+                          onClick={() => setDeletingMsgId(msg._id)} 
+                          className="opacity-0 group-hover:opacity-100 p-1 mb-1 text-slate-300 hover:text-red-500 transition-opacity rounded-full hover:bg-red-50 dark:hover:bg-red-900/20"
+                          title="Delete message"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
+                      
+                      <div 
+                        className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl text-[12.5px] leading-relaxed shadow-sm relative ${
+                          msg.isDeleted 
+                            ? "bg-slate-100/50 dark:bg-slate-800/30 text-slate-400 dark:text-slate-500 italic rounded-tr-sm border border-slate-200/50 dark:border-slate-700/30"
+                            : isMe 
+                            ? "bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 rounded-tr-sm" 
+                            : isMentioned && targetRole === "All"
+                              ? "bg-amber-50/90 dark:bg-amber-950/40 text-slate-800 dark:text-amber-100 border border-amber-300/60 dark:border-amber-700/60 rounded-tl-sm ring-2 ring-amber-400/30" 
+                              : "bg-white/90 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-slate-700/60 rounded-tl-sm"
+                        }`}
                       >
-                        <Trash2 size={13} />
-                      </button>
-                    )}
-
-                    {/* Inline Delete Confirmation */}
-                    {deletingMsgId === msg._id && (
-                      <div className={`absolute ${isMe ? 'right-0' : 'left-0'} bottom-full mb-1 bg-white/95 dark:bg-slate-800/95 shadow-xl rounded-lg border border-slate-200 dark:border-slate-700 p-1 z-50 animate-in fade-in zoom-in-95 flex flex-col w-36 backdrop-blur-md`}>
-                        <button 
-                          onClick={() => { handleDeleteMessage(msg._id); setDeletingMsgId(null); }} 
-                          className="text-red-600 dark:text-red-400 font-medium hover:bg-red-50 dark:hover:bg-red-900/30 text-[11px] text-left px-2 py-1.5 rounded-md transition-colors flex items-center gap-1.5"
-                        >
-                          <Trash2 size={12} />
-                          Delete for everyone
-                        </button>
-                        <button 
-                          onClick={() => setDeletingMsgId(null)} 
-                          className="text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 text-[11px] text-left px-2 py-1.5 rounded-md transition-colors mt-0.5"
-                        >
-                          Cancel
-                        </button>
+                        {isMentioned && !isMe && targetRole === "All" && (
+                          <span className="block text-[9.5px] font-bold text-amber-600 dark:text-amber-400 mb-0.5 uppercase tracking-wider">
+                            @ Mentioned
+                          </span>
+                        )}
+                        {msg.isDeleted ? msg.message : renderMessageContent(msg.message)}
                       </div>
-                    )}
+                      
+                      {canDelete && !msg.isDeleted && !isMe && (
+                         <button 
+                          onClick={() => setDeletingMsgId(msg._id)} 
+                          className="opacity-0 group-hover:opacity-100 p-1 mb-1 text-slate-300 hover:text-red-500 transition-opacity rounded-full hover:bg-red-50 dark:hover:bg-red-900/20"
+                          title="Delete (Admin)"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
+
+                      {/* Inline Delete Confirmation */}
+                      {deletingMsgId === msg._id && (
+                        <div className={`absolute ${isMe ? 'right-0' : 'left-0'} bottom-full mb-1 bg-white/95 dark:bg-slate-800/95 shadow-xl rounded-lg border border-slate-200 dark:border-slate-700 p-1 z-50 animate-in fade-in zoom-in-95 flex flex-col w-36 backdrop-blur-md`}>
+                          <button 
+                            onClick={() => { handleDeleteMessage(msg._id); setDeletingMsgId(null); }} 
+                            className="text-red-600 dark:text-red-400 font-medium hover:bg-red-50 dark:hover:bg-red-900/30 text-[11px] text-left px-2 py-1.5 rounded-md transition-colors flex items-center gap-1.5"
+                          >
+                            <Trash2 size={12} />
+                            Delete for everyone
+                          </button>
+                          <button 
+                            onClick={() => setDeletingMsgId(null)} 
+                            className="text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 text-[11px] text-left px-2 py-1.5 rounded-md transition-colors mt-0.5"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-[9.5px] font-medium text-slate-400 dark:text-slate-500 mt-1 mx-1">
+                      {formatMessageTime(msg.createdAt)}
+                    </span>
                   </div>
-                  <span className="text-[9px] text-slate-400 mt-1 mx-1">
-                    {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
+                </React.Fragment>
               );
             })}
 
