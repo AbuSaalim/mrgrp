@@ -14,6 +14,7 @@ export default function AddWorkerModal({ isOpen, onClose, onWorkerAdded }: AddWo
     name: "",
     skill: "",
     perHourRate: "",
+    phoneNumber: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -38,6 +39,7 @@ export default function AddWorkerModal({ isOpen, onClose, onWorkerAdded }: AddWo
         body: JSON.stringify({
           ...formData,
           perHourRate: Number(formData.perHourRate),
+          phoneNumber: formData.phoneNumber.trim() || undefined,
         }),
       });
 
@@ -48,7 +50,7 @@ export default function AddWorkerModal({ isOpen, onClose, onWorkerAdded }: AddWo
 
       onWorkerAdded();
       onClose();
-      setFormData({ name: "", skill: "", perHourRate: "" });
+      setFormData({ name: "", skill: "", perHourRate: "", phoneNumber: "" });
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -107,6 +109,10 @@ export default function AddWorkerModal({ isOpen, onClose, onWorkerAdded }: AddWo
               <option value="Welder">Welder</option>
               <option value="Fitter">Fitter</option>
               <option value="Painter">Painter</option>
+              <option value="Carpenter">Carpenter</option>
+              <option value="Mason">Mason</option>
+              <option value="Electrician">Electrician</option>
+              <option value="Plumber">Plumber</option>
             </select>
           </div>
 
@@ -124,6 +130,20 @@ export default function AddWorkerModal({ isOpen, onClose, onWorkerAdded }: AddWo
               onChange={handleChange}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               placeholder="e.g. 50"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Phone Number <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+            </label>
+            <input
+              type="tel"
+              name="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              placeholder="e.g. 9876543210"
             />
           </div>
 

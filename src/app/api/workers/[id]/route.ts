@@ -35,7 +35,8 @@ export async function GET(
 
     const { searchParams } = new URL(request.url);
     const dateParam = searchParams.get("date");
-    const targetDate = dateParam || new Date().toISOString().split("T")[0];
+    // Default to today in YYYY-MM-DD (Strict Indian Standard Time: Asia/Kolkata)
+    const targetDate = dateParam || new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
 
     await connectToDatabase();
 
@@ -102,7 +103,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, skill, perHourRate, currentStatus } = body;
+    const { name, skill, perHourRate, currentStatus, phoneNumber } = body;
 
     await connectToDatabase();
 
@@ -114,6 +115,7 @@ export async function PUT(
     if (name) worker.name = name;
     if (skill) worker.skill = skill;
     if (perHourRate !== undefined) worker.perHourRate = Number(perHourRate);
+    if (phoneNumber !== undefined) worker.phoneNumber = phoneNumber;
     if (currentStatus === "Active" || currentStatus === "Inactive") {
       worker.currentStatus = currentStatus;
     }

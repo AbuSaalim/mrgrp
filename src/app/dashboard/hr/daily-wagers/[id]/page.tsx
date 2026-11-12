@@ -22,7 +22,9 @@ export default function WorkerDailyViewPage() {
   const router = useRouter();
   const workerId = params.id as string;
   
-  const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [selectedDate, setSelectedDate] = useState(() =>
+    new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date())
+  );
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 

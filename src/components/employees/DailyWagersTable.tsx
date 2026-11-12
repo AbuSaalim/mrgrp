@@ -7,6 +7,7 @@ interface WorkerSummary {
   name: string;
   skill: string;
   perHourRate: number;
+  phoneNumber?: string;
   currentStatus: string;
   currentSite: string;
   inTime: string | null;
@@ -93,7 +94,14 @@ export default function DailyWagersTable({ workers, loading, userRole = "", onEd
                       #{index + 1}
                     </span>
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{worker.skill} • ₹{worker.perHourRate}/hr</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex flex-wrap items-center gap-1">
+                    <span>{worker.skill} • ₹{worker.perHourRate}/hr</span>
+                    {worker.phoneNumber && (
+                      <a href={`tel:${worker.phoneNumber}`} className="text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-0.5">
+                        • 📞 {worker.phoneNumber}
+                      </a>
+                    )}
+                  </div>
                 </div>
                 <div>{getStatusBadge(worker.currentStatus)}</div>
               </div>
@@ -186,7 +194,14 @@ export default function DailyWagersTable({ workers, loading, userRole = "", onEd
                 </td>
                 <td className="px-6 py-4">
                   <div className="font-medium text-gray-900 dark:text-white">{worker.name}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">{worker.skill} • ₹{worker.perHourRate}/hr</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 flex flex-wrap items-center gap-1 mt-0.5">
+                    <span>{worker.skill} • ₹{worker.perHourRate}/hr</span>
+                    {worker.phoneNumber && (
+                      <a href={`tel:${worker.phoneNumber}`} className="text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-0.5">
+                        • 📞 {worker.phoneNumber}
+                      </a>
+                    )}
+                  </div>
                 </td>
                 <td className="px-6 py-4">
                   {worker.currentSite !== "N/A" ? (

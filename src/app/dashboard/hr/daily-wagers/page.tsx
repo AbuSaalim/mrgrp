@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { PlusCircle, Search, Calendar as CalendarIcon, RefreshCw } from "lucide-react";
+import { PlusCircle, Search, Calendar as CalendarIcon, RefreshCw, Users, Clock, IndianRupee, Building2 } from "lucide-react";
 import AddWorkerModal from "@/components/employees/AddWorkerModal";
 import EditWorkerModal from "@/components/employees/EditWorkerModal";
 import DailyWagersTable from "@/components/employees/DailyWagersTable";
@@ -21,7 +21,9 @@ export default function DailyWagersPage() {
   const [selectedWorkerForAction, setSelectedWorkerForAction] = useState(null);
   const [selectedWorkerForEdit, setSelectedWorkerForEdit] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [selectedDate, setSelectedDate] = useState(() => 
+    new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date())
+  );
   const [refreshKey, setRefreshKey] = useState(0);
   const [userRole, setUserRole] = useState("");
 
@@ -84,10 +86,23 @@ export default function DailyWagersPage() {
     router.push(`/dashboard/hr/daily-wagers/${worker._id}`);
   };
 
+  // Summary Metrics calculations
+  const totalWorkers = workers.length;
+  const activeOnSite = workers.filter((w: any) => w.currentStatus === "IN" || w.currentStatus === "TRANSFER").length;
+  const totalHours = workers.reduce((sum: number, w: any) => sum + (Number(w.totalHours) || 0), 0);
+  const totalPayment = workers.reduce((sum: number, w: any) => sum + (Number(w.totalPayment) || 0), 0);
+  const activeSites = Array.from(new Set(
+    workers
+      .filter((w: any) => (w.currentStatus === "IN" || w.currentStatus === "TRANSFER") && w.currentSite && w.currentSite !== "N/A")
+      .map((w: any) => w.currentSite)
+  )).length;
+
   // Filter workers based on search query
   const filteredWorkers = workers.filter((worker: any) =>
     worker.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     worker.skill.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (worker.phoneNumber && worker.phoneNumber.includes(searchQuery)) ||
+    (worker.currentSite && worker.currentSite.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (worker._id && worker._id.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
@@ -98,6 +113,90 @@ export default function DailyWagersPage() {
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Manage daily wagers, their IN/OUT times, and calculate total pay.
         </p>
+      </div>
+
+      {/* KPI Metrics Cards */}
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        {/* Active On Site */}
+        <div className="relative overflow-hidden rounded-2xl border border-emerald-200/80 bg-white p-4 shadow-sm transition-all hover:shadow-md dark:border-emerald-500/30 dark:bg-emerald-500/5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                On Site Now
+              </p>
+              <div className="mt-1 flex items-baseline gap-1.5">
+                <span className="text-2xl sm:text-3xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
+                  {activeOnSite}
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  / {totalWorkers} workers
+                </span>
+              </div>
+            </div>
+            <div className="rounded-xl bg-emerald-50 p-2.5 sm:p-3 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+              <Users className="h-5 w-5 sm:h-6 sm:w-6" />
+            </div>
+          </div>
+        </div>
+
+        {/* Total Hours Logged */}
+        <div className="relative overflow-hidden rounded-2xl border border-blue-200/80 bg-white p-4 shadow-sm transition-all hover:shadow-md dark:border-blue-500/30 dark:bg-blue-500/5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                Hours Logged
+              </p>
+              <div className="mt-1 flex items-baseline gap-1.5">
+                <span className="text-2xl sm:text-3xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
+                  {totalHours.toFixed(1)}
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">hrs</span>
+              </div>
+            </div>
+            <div className="rounded-xl bg-blue-50 p-2.5 sm:p-3 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+              <Clock className="h-5 w-5 sm:h-6 sm:w-6" />
+            </div>
+          </div>
+        </div>
+
+        {/* Total Wage / Daily Payout */}
+        <div className="relative overflow-hidden rounded-2xl border border-purple-200/80 bg-white p-4 shadow-sm transition-all hover:shadow-md dark:border-purple-500/30 dark:bg-purple-500/5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                Daily Wages
+              </p>
+              <div className="mt-1 flex items-baseline gap-1">
+                <span className="text-2xl sm:text-3xl font-bold tracking-tight text-purple-600 dark:text-purple-400">
+                  ₹{Math.round(totalPayment).toLocaleString("en-IN")}
+                </span>
+              </div>
+            </div>
+            <div className="rounded-xl bg-purple-50 p-2.5 sm:p-3 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400">
+              <IndianRupee className="h-5 w-5 sm:h-6 sm:w-6" />
+            </div>
+          </div>
+        </div>
+
+        {/* Active Sites */}
+        <div className="relative overflow-hidden rounded-2xl border border-amber-200/80 bg-white p-4 shadow-sm transition-all hover:shadow-md dark:border-amber-500/30 dark:bg-amber-500/5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                Active Sites
+              </p>
+              <div className="mt-1 flex items-baseline gap-1.5">
+                <span className="text-2xl sm:text-3xl font-bold tracking-tight text-amber-600 dark:text-amber-400">
+                  {activeSites}
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">locations</span>
+              </div>
+            </div>
+            <div className="rounded-xl bg-amber-50 p-2.5 sm:p-3 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400">
+              <Building2 className="h-5 w-5 sm:h-6 sm:w-6" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Filters and Controls */}

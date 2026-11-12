@@ -26,18 +26,25 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const dateParam = searchParams.get("date");
-    // Default to today in YYYY-MM-DD
-    const targetDate = dateParam || new Date().toISOString().split("T")[0];
+    // Default to today in YYYY-MM-DD (Strict Indian Standard Time: Asia/Kolkata)
+    const targetDate = dateParam || new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
 
     await connectToDatabase();
 
-    // Fetch all active workers
-    const workers = await Worker.find({ currentStatus: "Active" }).sort({ createdAt: -1 }).lean();
-    
-    // Fetch logs for the target date
+    // 1. Fetch logs for the target date first
     const logs = await DailyWagerLog.find({ date: targetDate })
       .populate("logs.updatedBy", "name email role")
       .lean();
+
+    const loggedWorkerIds = logs.map((l: any) => l.workerId);
+
+    // 2. Fetch all Active workers OR any worker who had logs on this date (preserves historical accuracy)
+    const workers = await Worker.find({
+      $or: [
+        { currentStatus: "Active" },
+        { _id: { $in: loggedWorkerIds } }
+      ]
+    }).sort({ createdAt: -1 }).lean();
 
     // Aggregate data
     const summary = workers.map((worker: any) => {
@@ -77,6 +84,7 @@ export async function GET(request: Request) {
         name: worker.name,
         skill: worker.skill,
         perHourRate: worker.perHourRate,
+        phoneNumber: worker.phoneNumber || "",
         currentStatus: latestAction || "NOT LOGGED IN", // IN, TRANSFER, OUT, or NOT LOGGED IN
         currentSite,
         inTime,

@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     if (!user || !user.userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
     const body = await request.json();
-    const { workerId, action, siteName, remark, time } = body;
+    const { workerId, action, siteName, remark, time, date } = body;
 
     if (!workerId || !action || !siteName) {
       return NextResponse.json({ message: "Missing required fields (workerId, action, siteName)" }, { status: 400 });
@@ -39,9 +39,8 @@ export async function POST(request: Request) {
     await connectToDatabase();
 
     const actionTime = time ? new Date(time) : new Date();
-    // Use local date formatting (e.g., IST) or stick to UTC based on your app's timezone requirements. 
-    // Here we use a simple ISO slice for YYYY-MM-DD based on the actionTime.
-    const dateStr = actionTime.toISOString().split("T")[0];
+    // Strict Indian Timezone (IST: Asia/Kolkata)
+    const dateStr = date || new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(actionTime);
 
     // Find the worker to ensure they exist and to get their perHourRate if needed
     const worker = await Worker.findById(workerId);
@@ -70,30 +69,69 @@ export async function POST(request: Request) {
       remark: remark || "",
     };
 
-    // Ensure only one log entry per action type for the day to match the UI's 1-shift constraint
-    // This cleans up any duplicates and fixes chronological calculation bugs
-    const filteredLogs = dailyLog.logs.filter((l: any) => l.action !== action);
-    filteredLogs.push(newLogEntry);
-    dailyLog.logs = filteredLogs;
+    // Smart shift management:
+    // Sort existing logs chronologically
+    const existingLogs = [...dailyLog.logs].sort(
+      (a: any, b: any) => new Date(a.time).getTime() - new Date(b.time).getTime()
+    );
 
-    // Recalculate total hours and payment for the day based on all IN and OUT pairs
+    const lastLog = existingLogs.length > 0 ? existingLogs[existingLogs.length - 1] : null;
+
+    if (action === "IN") {
+      // If the last action was already IN (i.e. shift currently unclosed), 
+      // the supervisor is correcting the IN time of the current shift
+      if (lastLog && lastLog.action === "IN") {
+        lastLog.time = actionTime;
+        lastLog.siteName = siteName;
+        lastLog.remark = remark || lastLog.remark;
+        lastLog.updatedBy = new mongoose.Types.ObjectId(user.userId as string);
+        dailyLog.logs = existingLogs;
+      } else {
+        // First IN of the day or new split shift after previous OUT
+        dailyLog.logs.push(newLogEntry);
+      }
+    } else if (action === "OUT") {
+      // If the last action was already OUT, update the latest OUT time
+      if (lastLog && lastLog.action === "OUT") {
+        lastLog.time = actionTime;
+        lastLog.siteName = siteName;
+        lastLog.remark = remark || lastLog.remark;
+        lastLog.updatedBy = new mongoose.Types.ObjectId(user.userId as string);
+        dailyLog.logs = existingLogs;
+      } else {
+        dailyLog.logs.push(newLogEntry);
+      }
+    } else {
+      // TRANSFER: Always preserve transfer so all site movements are tracked
+      dailyLog.logs.push(newLogEntry);
+    }
+
+    // Recalculate total hours and payment for the day based on chronological work segments
     let totalHours = 0;
-    
-    // Sort logs chronologically to accurately pair INs and OUTs
-    const sortedLogs = [...dailyLog.logs].sort((a: any, b: any) => new Date(a.time).getTime() - new Date(b.time).getTime());
-    
-    let lastInTime: number | null = null;
-    
+    const sortedLogs = [...dailyLog.logs].sort(
+      (a: any, b: any) => new Date(a.time).getTime() - new Date(b.time).getTime()
+    );
+
+    let currentWorkStartTime: number | null = null;
+
     for (const log of sortedLogs) {
+      const logTime = new Date(log.time).getTime();
+
       if (log.action === "IN") {
-        lastInTime = new Date(log.time).getTime();
-      } else if (log.action === "OUT" && lastInTime !== null) {
-        const outTime = new Date(log.time).getTime();
-        const diffInHours = (outTime - lastInTime) / (1000 * 60 * 60);
-        if (diffInHours > 0) {
-          totalHours += diffInHours;
+        currentWorkStartTime = logTime;
+      } else if (log.action === "TRANSFER") {
+        // Transfer keeps worker actively working at the new site
+        if (currentWorkStartTime === null) {
+          currentWorkStartTime = logTime;
         }
-        lastInTime = null; // Reset to await next IN
+      } else if (log.action === "OUT") {
+        if (currentWorkStartTime !== null) {
+          const diffInHours = (logTime - currentWorkStartTime) / (1000 * 60 * 60);
+          if (diffInHours > 0) {
+            totalHours += diffInHours;
+          }
+          currentWorkStartTime = null; // shift closed
+        }
       }
     }
 

@@ -81,6 +81,7 @@ export default function LogActionModal({ isOpen, onClose, onActionLogged, worker
         siteName: formData.action === "OUT" ? (worker.currentSite !== "N/A" ? worker.currentSite : "Unknown Site") : formData.siteName,
         remark: formData.remark,
         time: formData.time.toISOString(),
+        date: selectedDate,
       };
 
       const response = await fetch("/api/daily-wager/log", {

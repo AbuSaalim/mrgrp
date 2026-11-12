@@ -15,6 +15,7 @@ export default function EditWorkerModal({ isOpen, onClose, onWorkerUpdated, work
     name: "",
     skill: "",
     perHourRate: "",
+    phoneNumber: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -25,6 +26,7 @@ export default function EditWorkerModal({ isOpen, onClose, onWorkerUpdated, work
         name: worker.name || "",
         skill: worker.skill || "",
         perHourRate: worker.perHourRate ? worker.perHourRate.toString() : "",
+        phoneNumber: worker.phoneNumber || "",
       });
       setError("");
     }
@@ -50,6 +52,7 @@ export default function EditWorkerModal({ isOpen, onClose, onWorkerUpdated, work
         body: JSON.stringify({
           ...formData,
           perHourRate: Number(formData.perHourRate),
+          phoneNumber: formData.phoneNumber.trim(),
         }),
       });
 
@@ -139,6 +142,20 @@ export default function EditWorkerModal({ isOpen, onClose, onWorkerUpdated, work
               onChange={handleChange}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               placeholder="e.g. 50"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Phone Number <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+            </label>
+            <input
+              type="tel"
+              name="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              placeholder="e.g. 9876543210"
             />
           </div>
 
