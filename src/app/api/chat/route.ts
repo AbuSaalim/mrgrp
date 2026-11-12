@@ -4,6 +4,7 @@ import ChatMessage from "@/models/ChatMessage";
 import { pusherServer } from "@/lib/pusher";
 import * as jose from "jose";
 import User from "@/models/User";
+import { cleanupExpiredChatMedia } from "@/lib/chatCleanup";
 
 async function getUserData(req: NextRequest) {
   const token = req.cookies.get("auth_token")?.value;
@@ -50,14 +51,35 @@ export async function GET(req: NextRequest) {
        };
     }
 
+    // Trigger background sweep for expired chat photos (> 24 hours)
+    cleanupExpiredChatMedia().catch(console.error);
+
     // Fetch messages sorted by createdAt ascending (oldest first for chat UI is reversed later)
-    const messages = await ChatMessage.find(query)
+    const rawMessages = await ChatMessage.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean();
+
+    const now = Date.now();
+    const sanitizedMessages = rawMessages.map((msg: any) => {
+      if (
+        msg.mediaKey &&
+        msg.mediaExpiresAt &&
+        new Date(msg.mediaExpiresAt).getTime() <= now
+      ) {
+        return {
+          ...msg,
+          mediaKey: null,
+          mediaUrl: null,
+          mediaDeleted: true,
+          message: msg.message || "Photo expired and was deleted (24h limit)",
+        };
+      }
+      return msg;
+    });
     
-    return NextResponse.json(messages.reverse());
+    return NextResponse.json(sanitizedMessages.reverse());
   } catch (error) {
     console.error("Error fetching chat messages:", error);
     return NextResponse.json({ error: "Failed to fetch messages" }, { status: 500 });
@@ -71,10 +93,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { message, taggedRoles, targetRole } = await req.json();
+    const {
+      message,
+      taggedRoles,
+      targetRole,
+      mediaKey,
+      mediaName,
+      mediaType,
+      mediaSize,
+    } = await req.json();
 
-    if (!message || message.trim() === "") {
-      return NextResponse.json({ error: "Message cannot be empty" }, { status: 400 });
+    const trimmedMsg = message ? message.trim() : "";
+
+    if (!trimmedMsg && !mediaKey) {
+      return NextResponse.json({ error: "Message or image is required" }, { status: 400 });
     }
 
     await connectToDatabase();
@@ -88,13 +120,23 @@ export async function POST(req: NextRequest) {
        baseRole = baseRole.split("_")[0];
     }
 
+    // Auto-expiry exactly 24 hours (1 day) from send time
+    const mediaExpiresAt = mediaKey ? new Date(Date.now() + 24 * 60 * 60 * 1000) : null;
+
     const newMessage = await ChatMessage.create({
       senderId: (userPayload.userId as string) || (userPayload.id as string),
       senderName: senderName,
       senderRole: baseRole,
-      message: message.trim(),
+      message: trimmedMsg,
       targetRole: targetRole || "All",
       taggedRoles: Array.isArray(taggedRoles) ? taggedRoles : [],
+      mediaKey: mediaKey || null,
+      mediaUrl: mediaKey ? `/api/chat/media/${mediaKey}` : null,
+      mediaName: mediaName || null,
+      mediaType: mediaType || null,
+      mediaSize: mediaSize || null,
+      mediaExpiresAt: mediaExpiresAt,
+      mediaDeleted: false,
     });
 
     // Broadcast to Pusher

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Pusher from "pusher-js";
-import { MessageSquare, X, Send, Trash2, ChevronDown } from "lucide-react";
+import { MessageSquare, X, Send, Trash2, ChevronDown, Camera, Clock, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface ChatMessage {
@@ -14,6 +14,13 @@ interface ChatMessage {
   targetRole: string;
   taggedRoles: string[];
   isDeleted: boolean;
+  mediaKey?: string | null;
+  mediaUrl?: string | null;
+  mediaName?: string | null;
+  mediaType?: string | null;
+  mediaSize?: number | null;
+  mediaExpiresAt?: string | null;
+  mediaDeleted?: boolean;
   createdAt: string;
 }
 
@@ -89,6 +96,42 @@ export default function GlobalChat() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Site Photo / Media State
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [viewerImage, setViewerImage] = useState<{ url: string; name: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const MAX_SIZE = 1 * 1024 * 1024; // 1 MB limit
+    if (file.size > MAX_SIZE) {
+      toast.error(`Image size must be less than 1 MB (Selected: ${(file.size / (1024 * 1024)).toFixed(2)} MB)`);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Only image files (JPG, PNG, WebP) are allowed");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    if (filePreviewUrl) URL.revokeObjectURL(filePreviewUrl);
+    setSelectedFile(file);
+    setFilePreviewUrl(URL.createObjectURL(file));
+  };
+
+  const cancelSelectedFile = () => {
+    if (filePreviewUrl) URL.revokeObjectURL(filePreviewUrl);
+    setSelectedFile(null);
+    setFilePreviewUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   useEffect(() => {
     userDataRef.current = userData;
@@ -343,7 +386,7 @@ export default function GlobalChat() {
 
   const handleSendMessage = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!inputText.trim()) return;
+    if (!inputText.trim() && !selectedFile) return;
 
     const messageToSend = inputText;
     setInputText("");
@@ -355,13 +398,54 @@ export default function GlobalChat() {
       .map((w) => w.substring(1))
       .filter((tag) => ROLES.includes(tag));
 
+    let uploadedMedia: {
+      mediaKey: string;
+      mediaName: string;
+      mediaType: string;
+      mediaSize: number;
+    } | null = null;
+
+    if (selectedFile) {
+      setIsUploading(true);
+      try {
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        const upRes = await fetch("/api/chat/upload", {
+          method: "POST",
+          body: formData,
+        });
+        if (!upRes.ok) {
+          const errData = await upRes.json().catch(() => ({}));
+          toast.error(errData.error || "Failed to upload image");
+          setIsUploading(false);
+          setInputText(messageToSend);
+          return;
+        }
+        uploadedMedia = await upRes.json();
+      } catch (uploadErr) {
+        toast.error("Image upload failed");
+        setIsUploading(false);
+        setInputText(messageToSend);
+        return;
+      }
+    }
+
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: messageToSend, taggedRoles: tags, targetRole }),
+        body: JSON.stringify({ 
+          message: messageToSend, 
+          taggedRoles: tags, 
+          targetRole,
+          mediaKey: uploadedMedia?.mediaKey,
+          mediaName: uploadedMedia?.mediaName,
+          mediaType: uploadedMedia?.mediaType,
+          mediaSize: uploadedMedia?.mediaSize,
+        }),
       });
       if (res.ok) {
+        cancelSelectedFile();
         const sentMsg = await res.json();
         setMessages((prev) => {
           if (prev.some((m) => m._id === sentMsg._id)) return prev;
@@ -369,12 +453,14 @@ export default function GlobalChat() {
         });
         setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 30);
       } else {
-        setInputText(messageToSend);
+        if (messageToSend) setInputText(messageToSend);
         toast.error("Failed to send message");
       }
     } catch (err) {
-      setInputText(messageToSend);
+      if (messageToSend) setInputText(messageToSend);
       toast.error("Network error");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -684,7 +770,40 @@ export default function GlobalChat() {
                             @ Mentioned
                           </span>
                         )}
-                        {msg.isDeleted ? msg.message : renderMessageContent(msg.message)}
+
+                        {/* Image Attachment (24h Auto-deletion) */}
+                        {msg.mediaKey && !msg.mediaDeleted && (
+                          <div className="my-1.5 rounded-xl overflow-hidden border border-slate-300/60 dark:border-slate-700/80 max-w-[240px] relative group/photo shadow-sm">
+                            <img
+                              src={`/api/chat/media/${msg.mediaKey}`}
+                              alt={msg.mediaName || "Site Photo"}
+                              className="w-full max-h-56 object-cover cursor-pointer hover:scale-[1.02] transition-transform duration-200 block"
+                              loading="lazy"
+                              onClick={() => setViewerImage({
+                                url: `/api/chat/media/${msg.mediaKey}`,
+                                name: msg.mediaName || "Site Photo"
+                              })}
+                            />
+                            <div className="absolute bottom-1 right-1 bg-black/65 backdrop-blur-md px-1.5 py-0.5 rounded text-[9.5px] font-medium text-white/95 flex items-center gap-1 shadow">
+                              <Clock size={10} className="text-amber-400" />
+                              <span>24h</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Expired Image Placeholder */}
+                        {msg.mediaDeleted && (
+                          <div className="flex items-center gap-1.5 my-1.5 text-[11px] text-slate-400 dark:text-slate-500 italic bg-slate-100/50 dark:bg-slate-800/40 px-2 py-1 rounded-md border border-slate-200/40 dark:border-slate-700/30">
+                            <Clock size={11} className="text-slate-400" />
+                            <span>Photo expired & deleted (24h limit)</span>
+                          </div>
+                        )}
+
+                        {msg.isDeleted ? (
+                          msg.message
+                        ) : msg.message ? (
+                          renderMessageContent(msg.message)
+                        ) : null}
                       </div>
                       
                       {canDelete && !msg.isDeleted && !isMe && (
@@ -760,7 +879,59 @@ export default function GlobalChat() {
               </div>
             )}
 
+            {/* Selected Image Preview Strip */}
+            {filePreviewUrl && (
+              <div className="mb-2 p-2 bg-slate-100/90 dark:bg-slate-800/90 backdrop-blur-md rounded-xl border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between animate-in fade-in slide-in-from-bottom-2">
+                <div className="flex items-center gap-2.5 overflow-hidden">
+                  <img
+                    src={filePreviewUrl}
+                    alt="Preview"
+                    className="w-11 h-11 rounded-lg object-cover border border-slate-300 dark:border-slate-600 flex-shrink-0"
+                  />
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[170px]">
+                      {selectedFile?.name}
+                    </span>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                        {selectedFile && (selectedFile.size / 1024).toFixed(0)} KB
+                      </span>
+                      <span className="text-[9px] bg-amber-100/90 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded-full font-medium flex items-center gap-0.5">
+                        <Clock size={9} />
+                        24h auto-delete
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={cancelSelectedFile}
+                  disabled={isUploading}
+                  className="p-1.5 text-slate-400 hover:text-red-500 rounded-full hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors"
+                  title="Remove photo"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+            )}
+
             <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="w-10 h-10 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex-shrink-0"
+                title="Attach photo (< 1MB, 24h expiry)"
+              >
+                <Camera size={18} />
+              </button>
               <input
                 ref={inputRef}
                 type="text"
@@ -771,15 +942,19 @@ export default function GlobalChat() {
                     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
                   }, 300);
                 }}
-                placeholder={targetRole === "All" ? "Type a message... use @ to tag" : `Private message to ${targetRole}...`}
+                placeholder={selectedFile ? "Add an optional caption..." : targetRole === "All" ? "Type a message... use @ to tag" : `Private message to ${targetRole}...`}
                 className="flex-1 bg-white/50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 focus:bg-white dark:focus:bg-slate-800 focus:border-slate-400 dark:focus:border-slate-500 focus:ring-0 rounded-full px-4 py-2.5 text-[13.5px] transition-all shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-800 dark:text-slate-200"
               />
               <button 
                 type="submit"
-                disabled={!inputText.trim()}
+                disabled={(!inputText.trim() && !selectedFile) || isUploading}
                 className="w-10 h-10 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center disabled:opacity-50 hover:scale-105 transition-all flex-shrink-0 shadow-sm"
               >
-                <Send size={16} className="ml-0.5" />
+                {isUploading ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Send size={16} className="ml-0.5" />
+                )}
               </button>
             </form>
           </div>
@@ -810,6 +985,52 @@ export default function GlobalChat() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Fullscreen Image Viewer Modal */}
+      {viewerImage && (
+        <div 
+          className="fixed inset-0 z-[250] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => setViewerImage(null)}
+        >
+          <div className="absolute top-4 right-4 flex items-center gap-2 z-10" onClick={(e) => e.stopPropagation()}>
+            <a
+              href={viewerImage.url}
+              download={viewerImage.name}
+              target="_blank"
+              rel="noreferrer"
+              className="p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors flex items-center justify-center backdrop-blur-md"
+              title="Download image"
+            >
+              <Download size={18} />
+            </a>
+            <button
+              onClick={() => setViewerImage(null)}
+              className="p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors flex items-center justify-center backdrop-blur-md"
+              title="Close"
+            >
+              <X size={18} />
+            </button>
+          </div>
+          <div 
+            className="max-w-full max-h-[85vh] flex flex-col items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={viewerImage.url}
+              alt={viewerImage.name}
+              className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl"
+            />
+            <div className="mt-3 text-xs text-white/80 font-medium bg-black/60 px-3 py-1 rounded-full backdrop-blur-sm border border-white/10 flex items-center gap-1.5">
+              <span>{viewerImage.name}</span>
+              <span>•</span>
+              <span className="text-amber-400 flex items-center gap-1">
+                <Clock size={11} />
+                Auto-deletes in 24 hours
+              </span>
+            </div>
+          </div>
         </div>
       )}
     </>

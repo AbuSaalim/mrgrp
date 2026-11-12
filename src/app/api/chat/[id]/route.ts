@@ -4,6 +4,8 @@ import ChatMessage from "@/models/ChatMessage";
 import { pusherServer } from "@/lib/pusher";
 import * as jose from "jose";
 import mongoose from "mongoose";
+import { r2 } from "@/lib/r2";
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 
 async function getUserData(req: NextRequest) {
   const token = req.cookies.get("auth_token")?.value;
@@ -52,9 +54,27 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       return NextResponse.json({ error: "Forbidden: You can only delete your own messages" }, { status: 403 });
     }
 
-    // Soft delete
+    // Soft delete & delete attachment from Cloudflare R2 if exists
     message.isDeleted = true;
     message.message = "This message was deleted";
+
+    if (message.mediaKey) {
+      try {
+        const bucketName = process.env.R2_BUCKET_NAME || "mrgrp-document-module-storage";
+        await r2.send(
+          new DeleteObjectCommand({
+            Bucket: bucketName,
+            Key: message.mediaKey,
+          })
+        );
+      } catch (r2Err) {
+        console.error("Failed to delete media from R2 on message delete:", r2Err);
+      }
+      message.mediaKey = null;
+      message.mediaUrl = null;
+      message.mediaDeleted = true;
+    }
+
     await message.save();
 
     // Broadcast delete event
