@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     if (!user || !user.userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
     const body = await request.json();
-    const { workerId, action, siteName, remark, time, date, perHourRate } = body;
+    const { workerId, action, siteName, remark, time, date } = body;
 
     if (!workerId || !action || !siteName) {
       return NextResponse.json({ message: "Missing required fields (workerId, action, siteName)" }, { status: 400 });
@@ -82,22 +82,6 @@ export async function POST(request: Request) {
     const worker = await Worker.findById(workerId);
     if (!worker) {
       return NextResponse.json({ message: "Worker not found" }, { status: 404 });
-    }
-
-    // Role-based privilege check: Only Super Admin and HR can modify perHourRate
-    const userRoleStr = (user.role as string) || "";
-    const isPrivileged =
-      userRoleStr.includes("Super") ||
-      userRoleStr.includes("Admin") ||
-      userRoleStr.includes("HR") ||
-      userRoleStr.includes("System");
-
-    if (isPrivileged && perHourRate !== undefined && perHourRate !== null) {
-      const parsedRate = Number(perHourRate);
-      if (!isNaN(parsedRate) && parsedRate >= 0) {
-        worker.perHourRate = parsedRate;
-        await worker.save();
-      }
     }
 
     // Upsert the daily log document

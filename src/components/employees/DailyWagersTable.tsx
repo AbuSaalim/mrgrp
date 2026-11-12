@@ -38,6 +38,14 @@ export default function DailyWagersTable({
   onView,
   onTogglePayment 
 }: DailyWagersTableProps) {
+  const isHRorAdmin = Boolean(
+    userRole && (
+      userRole.toUpperCase().includes("HR") ||
+      userRole.toUpperCase().includes("SUPER") ||
+      userRole.toUpperCase().includes("ADMIN")
+    )
+  );
+
   const formatTime = (isoString: string | null) => {
     if (!isoString) return "-";
     return format(new Date(isoString), "hh:mm a");
@@ -172,7 +180,7 @@ export default function DailyWagersTable({
                 >
                   <Eye className="h-4 w-4" /> View
                 </button>
-                {(userRole.includes("HR") || userRole.includes("Super") || userRole.includes("Admin")) && (
+                {isHRorAdmin && (
                   <button
                     onClick={() => onUpdateWorker(worker)}
                     className="flex flex-1 justify-center items-center gap-1.5 rounded-lg border border-gray-200 px-2 sm:px-4 py-2 text-[13px] sm:text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-orange-600 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-orange-400 transition-colors"
@@ -274,7 +282,7 @@ export default function DailyWagersTable({
                     >
                       <Eye className="h-4 w-4" />
                     </button>
-                    {(userRole.includes("HR") || userRole.includes("Super") || userRole.includes("Admin")) && (
+                    {isHRorAdmin && (
                       <button
                         onClick={() => onUpdateWorker(worker)}
                         className="rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-orange-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-orange-400 transition-colors"

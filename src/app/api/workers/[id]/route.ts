@@ -116,7 +116,16 @@ export async function PUT(
 
     if (name) worker.name = name;
     if (skill) worker.skill = skill;
-    if (perHourRate !== undefined) worker.perHourRate = Number(perHourRate);
+    if (perHourRate !== undefined) {
+      worker.perHourRate = Number(perHourRate);
+      // Auto-recalculate today's total payment if a log exists for today
+      const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+      const todayLog = await DailyWagerLog.findOne({ workerId, date: today });
+      if (todayLog) {
+        todayLog.totalPaymentCalculated = Number(((todayLog.totalHoursCalculated || 0) * worker.perHourRate).toFixed(2));
+        await todayLog.save();
+      }
+    }
     if (phoneNumber !== undefined) worker.phoneNumber = phoneNumber;
     if (currentStatus === "Active" || currentStatus === "Inactive") {
       worker.currentStatus = currentStatus;

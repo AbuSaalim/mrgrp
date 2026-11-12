@@ -324,7 +324,7 @@ export default function DailyWagersPage() {
             <span className="hidden sm:inline">Export CSV</span>
           </button>
 
-          {(userRole.includes("HR") || userRole.includes("Super") || userRole.includes("Admin")) && (
+          {Boolean(userRole && (userRole.toUpperCase().includes("HR") || userRole.toUpperCase().includes("SUPER") || userRole.toUpperCase().includes("ADMIN"))) && (
             <button
               onClick={() => setIsAddModalOpen(true)}
               className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors shrink-0"
@@ -366,7 +366,6 @@ export default function DailyWagersPage() {
         onActionLogged={handleActionLogged}
         worker={selectedWorkerForAction}
         selectedDate={selectedDate}
-        userRole={userRole}
       />
     </div>
   );
