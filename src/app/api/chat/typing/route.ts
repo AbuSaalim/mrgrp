@@ -19,11 +19,14 @@ export async function POST(req: Request) {
        baseRole = baseRole.split("_")[0];
     }
 
-    const { targetRole, isTyping } = await req.json();
+    const { targetRole, targetUserId, isTyping } = await req.json();
+    const senderId = (payload.userId || payload.id) as string;
 
     await pusherServer.trigger("global-chat", "user-typing", {
+      senderId,
       senderRole: baseRole,
       targetRole,
+      targetUserId,
       isTyping
     });
 

@@ -6,6 +6,8 @@ export interface IChatMessage extends Document {
   senderRole: string;
   message: string;
   targetRole: string; // "All" for global, or specific role name for private department chat
+  targetUserId?: mongoose.Types.ObjectId | null; // For 1-on-1 direct messaging
+  targetUserName?: string | null;
   taggedRoles: string[]; // For tagging specific roles in Global chat
   isDeleted: boolean;
   mediaKey?: string | null;
@@ -26,6 +28,8 @@ const ChatMessageSchema = new Schema<IChatMessage>(
     senderRole: { type: String, required: true },
     message: { type: String, default: "" },
     targetRole: { type: String, default: "All" },
+    targetUserId: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    targetUserName: { type: String, default: null },
     taggedRoles: { type: [String], default: [] },
     isDeleted: { type: Boolean, default: false },
     mediaKey: { type: String, default: null },
@@ -44,6 +48,7 @@ const ChatMessageSchema = new Schema<IChatMessage>(
 // Add index to fetch recent messages quickly and clean up expired media
 ChatMessageSchema.index({ createdAt: -1 });
 ChatMessageSchema.index({ mediaExpiresAt: 1 });
+ChatMessageSchema.index({ targetUserId: 1, senderId: 1 });
 
 const ChatMessage: Model<IChatMessage> =
   mongoose.models.ChatMessage || mongoose.model<IChatMessage>("ChatMessage", ChatMessageSchema);

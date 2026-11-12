@@ -35,20 +35,32 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1", 10);
     const targetRole = searchParams.get("targetRole") || "All";
+    const targetUserId = searchParams.get("targetUserId");
+    const currentUserId = (userPayload.userId || userPayload.id) as string;
     const limit = 50;
     const skip = (page - 1) * limit;
 
     await connectToDatabase();
     
-    let query: any = { targetRole: "All" };
+    let query: any = { targetRole: "All", targetUserId: null };
 
-    if (targetRole !== "All") {
-       query = {
-         $or: [
-           { senderRole: baseRole, targetRole: targetRole },
-           { senderRole: targetRole, targetRole: baseRole }
-         ]
-       };
+    if (targetUserId) {
+      // 1-on-1 Direct Messaging query between current user and target user
+      query = {
+        $or: [
+          { senderId: currentUserId, targetUserId: targetUserId },
+          { senderId: targetUserId, targetUserId: currentUserId },
+        ],
+      };
+    } else if (targetRole !== "All") {
+      // Department channel query
+      query = {
+        targetUserId: null,
+        $or: [
+          { senderRole: baseRole, targetRole: targetRole },
+          { senderRole: targetRole, targetRole: baseRole },
+        ],
+      };
     }
 
     // Trigger background sweep for expired chat photos (> 24 hours)
@@ -97,6 +109,8 @@ export async function POST(req: NextRequest) {
       message,
       taggedRoles,
       targetRole,
+      targetUserId,
+      targetUserName,
       mediaKey,
       mediaName,
       mediaType,
@@ -110,7 +124,8 @@ export async function POST(req: NextRequest) {
     }
 
     await connectToDatabase();
-    const user = await User.findById(userPayload.userId || userPayload.id).select("name");
+    const currentUserId = (userPayload.userId as string) || (userPayload.id as string);
+    const user = await User.findById(currentUserId).select("name");
     const senderName = user?.name || "Unknown User";
 
     let baseRole = userPayload.role as string;
@@ -120,15 +135,23 @@ export async function POST(req: NextRequest) {
        baseRole = baseRole.split("_")[0];
     }
 
+    let recipientName = targetUserName;
+    if (targetUserId && !recipientName) {
+      const recipient = await User.findById(targetUserId).select("name");
+      recipientName = recipient?.name || "Direct Message";
+    }
+
     // Auto-expiry exactly 24 hours (1 day) from send time
     const mediaExpiresAt = mediaKey ? new Date(Date.now() + 24 * 60 * 60 * 1000) : null;
 
     const newMessage = await ChatMessage.create({
-      senderId: (userPayload.userId as string) || (userPayload.id as string),
+      senderId: currentUserId,
       senderName: senderName,
       senderRole: baseRole,
       message: trimmedMsg,
-      targetRole: targetRole || "All",
+      targetRole: targetUserId ? "DM" : (targetRole || "All"),
+      targetUserId: targetUserId || null,
+      targetUserName: recipientName || null,
       taggedRoles: Array.isArray(taggedRoles) ? taggedRoles : [],
       mediaKey: mediaKey || null,
       mediaUrl: mediaKey ? `/api/chat/media/${mediaKey}` : null,

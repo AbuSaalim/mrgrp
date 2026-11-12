@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Pusher from "pusher-js";
-import { MessageSquare, X, Send, Trash2, ChevronDown, Camera, Clock, Download, Loader2 } from "lucide-react";
+import { MessageSquare, X, Send, Trash2, ChevronDown, Camera, Clock, Download, Loader2, User, Users, Search } from "lucide-react";
 import { toast } from "sonner";
 
 interface ChatMessage {
@@ -12,6 +12,8 @@ interface ChatMessage {
   senderRole: string;
   message: string;
   targetRole: string;
+  targetUserId?: string | null;
+  targetUserName?: string | null;
   taggedRoles: string[];
   isDeleted: boolean;
   mediaKey?: string | null;
@@ -22,6 +24,14 @@ interface ChatMessage {
   mediaExpiresAt?: string | null;
   mediaDeleted?: boolean;
   createdAt: string;
+}
+
+interface ChatUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  isActive?: boolean;
 }
 
 interface UserData {
@@ -103,6 +113,22 @@ export default function GlobalChat() {
   const [isUploading, setIsUploading] = useState(false);
   const [viewerImage, setViewerImage] = useState<{ url: string; name: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 1-on-1 Direct Messaging State
+  const [usersList, setUsersList] = useState<ChatUser[]>([]);
+  const [selectedUser, setSelectedUser] = useState<ChatUser | null>(null);
+  const selectedUserRef = useRef<ChatUser | null>(null);
+  const [chatTab, setChatTab] = useState<"channels" | "dms">("channels");
+  const [userSearchQuery, setUserSearchQuery] = useState("");
+  const [unreadByDm, setUnreadByDm] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    selectedUserRef.current = selectedUser;
+    setTypingRoles([]);
+    if (isOpen && selectedUser) {
+      setUnreadByDm((prev) => ({ ...prev, [selectedUser.id]: 0 }));
+    }
+  }, [selectedUser, isOpen]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -189,23 +215,36 @@ export default function GlobalChat() {
     }
   }, [isOpen]);
 
-  // Fetch User Data
+  // Fetch User Data and Team Members
   useEffect(() => {
     async function init() {
       try {
         const userRes = await fetch("/api/auth/me");
         if (userRes.ok) setUserData(await userRes.json());
       } catch (err) {}
+
+      try {
+        const usersRes = await fetch("/api/users");
+        if (usersRes.ok) {
+          const data = await usersRes.json();
+          setUsersList(data.users || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch users list for chat:", err);
+      }
     }
     init();
   }, []);
 
-  // Fetch Messages on targetRole change
+  // Fetch Messages on targetRole or selectedUser change
   useEffect(() => {
     async function loadInitialMessages() {
       setIsFetching(true);
       try {
-        const chatRes = await fetch(`/api/chat?targetRole=${targetRole}&page=1`);
+        const url = selectedUser
+          ? `/api/chat?targetUserId=${selectedUser.id}&page=1`
+          : `/api/chat?targetRole=${targetRole}&page=1`;
+        const chatRes = await fetch(url);
         if (chatRes.ok) {
            const data: ChatMessage[] = await chatRes.json();
            setHasMore(data.length >= 50);
@@ -220,7 +259,7 @@ export default function GlobalChat() {
     }
     setPage(1);
     loadInitialMessages();
-  }, [targetRole]);
+  }, [targetRole, selectedUser]);
 
   // Background & Screen Unlock Reconnect Sync
   useEffect(() => {
@@ -228,7 +267,11 @@ export default function GlobalChat() {
       if (document.visibilityState !== "visible") return;
       try {
         const currentTarget = targetRoleRef.current;
-        const res = await fetch(`/api/chat?targetRole=${currentTarget}&page=1`);
+        const currentDmUser = selectedUserRef.current;
+        const url = currentDmUser
+          ? `/api/chat?targetUserId=${currentDmUser.id}&page=1`
+          : `/api/chat?targetRole=${currentTarget}&page=1`;
+        const res = await fetch(url);
         if (res.ok) {
           const latestMessages: ChatMessage[] = await res.json();
           setMessages((prev) => {
@@ -269,7 +312,10 @@ export default function GlobalChat() {
     setIsFetchingOlder(true);
     try {
       const nextPage = page + 1;
-      const chatRes = await fetch(`/api/chat?targetRole=${targetRole}&page=${nextPage}`);
+      const url = selectedUser
+        ? `/api/chat?targetUserId=${selectedUser.id}&page=${nextPage}`
+        : `/api/chat?targetRole=${targetRole}&page=${nextPage}`;
+      const chatRes = await fetch(url);
       if (chatRes.ok) {
         const olderData: ChatMessage[] = await chatRes.json();
         setHasMore(olderData.length >= 50);
@@ -305,15 +351,53 @@ export default function GlobalChat() {
     
     const handleNewMessage = (newMsg: ChatMessage) => {
       const currentRole = userDataRef.current?.role || "";
+      const myId = (userDataRef.current?.userId || userDataRef.current?.id)?.toString();
+      const isMyOwnMessage = Boolean(myId && newMsg.senderId?.toString() === myId);
+      const activeDmId = selectedUserRef.current?.id;
+
       let shouldShow = false;
 
-      // Filter if the message belongs in the current active view
-      if (targetRoleRef.current === "All") {
-         if (newMsg.targetRole === "All") shouldShow = true;
-      } else {
-         if (newMsg.targetRole === targetRoleRef.current || (newMsg.targetRole === currentRole && newMsg.senderRole === targetRoleRef.current)) {
+      // Handle 1-on-1 Direct Message
+      if (newMsg.targetUserId) {
+        const isForMe = newMsg.targetUserId === myId;
+        const isFromMe = newMsg.senderId?.toString() === myId;
+        if (!isForMe && !isFromMe) return; // not involved in this DM
+
+        // If currently viewing DM with the other party
+        if (activeDmId && (newMsg.senderId?.toString() === activeDmId || (isFromMe && newMsg.targetUserId === activeDmId))) {
+          shouldShow = true;
+        }
+
+        if (shouldShow) {
+          setMessages((prev) => {
+            if (prev.some((m) => m._id === newMsg._id)) return prev;
+            return [...prev, newMsg];
+          });
+          setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+        }
+
+        if (isMyOwnMessage) return;
+
+        // Badge & Notification for DM
+        if (!isOpenRef.current || activeDmId !== newMsg.senderId) {
+          setUnreadByDm((prev) => ({ ...prev, [newMsg.senderId]: (prev[newMsg.senderId] || 0) + 1 }));
+          toast(`Direct Message from ${newMsg.senderName}`, {
+            description: newMsg.message || (newMsg.mediaKey ? "Sent a site photo" : ""),
+            icon: <MessageSquare size={16} className="text-blue-500" />
+          });
+        }
+        return;
+      }
+
+      // Handle Channel Messages (Global or Department)
+      if (!selectedUserRef.current) {
+        if (targetRoleRef.current === "All") {
+          if (newMsg.targetRole === "All") shouldShow = true;
+        } else {
+          if (newMsg.targetRole === targetRoleRef.current || (newMsg.targetRole === currentRole && newMsg.senderRole === targetRoleRef.current)) {
             shouldShow = true;
-         }
+          }
+        }
       }
 
       if (shouldShow) {
@@ -324,26 +408,24 @@ export default function GlobalChat() {
         setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
       }
 
-      const myId = (userDataRef.current?.userId || userDataRef.current?.id)?.toString();
-      const isMyOwnMessage = myId && newMsg.senderId?.toString() === myId;
       if (isMyOwnMessage) return;
 
-      // Badges & Notifications
+      // Badges & Notifications for channel
       if (newMsg.targetRole === "All") {
-         if (!isOpenRef.current || targetRoleRef.current !== "All") {
-            setUnreadByRole(prev => ({ ...prev, "All": (prev["All"] || 0) + 1 }));
-            const isMentioned = newMsg.taggedRoles.includes(currentRole);
-            toast(`Global Chat${isMentioned ? ' (Mention)' : ''}: ${newMsg.senderName}`, {
-               icon: <MessageSquare size={16} className="text-blue-500" />
-            });
-         }
+        if (!isOpenRef.current || selectedUserRef.current || targetRoleRef.current !== "All") {
+          setUnreadByRole(prev => ({ ...prev, "All": (prev["All"] || 0) + 1 }));
+          const isMentioned = newMsg.taggedRoles.includes(currentRole);
+          toast(`Global Chat${isMentioned ? ' (Mention)' : ''}: ${newMsg.senderName}`, {
+            icon: <MessageSquare size={16} className="text-blue-500" />
+          });
+        }
       } else if (newMsg.targetRole === currentRole) {
-         if (!isOpenRef.current || targetRoleRef.current !== newMsg.senderRole) {
-            setUnreadByRole(prev => ({ ...prev, [newMsg.senderRole]: (prev[newMsg.senderRole] || 0) + 1 }));
-            toast(`Private message from ${newMsg.senderName}`, {
-               icon: <MessageSquare size={16} className="text-blue-500" />
-            });
-         }
+        if (!isOpenRef.current || selectedUserRef.current || targetRoleRef.current !== newMsg.senderRole) {
+          setUnreadByRole(prev => ({ ...prev, [newMsg.senderRole]: (prev[newMsg.senderRole] || 0) + 1 }));
+          toast(`Department message from ${newMsg.senderName}`, {
+            icon: <MessageSquare size={16} className="text-blue-500" />
+          });
+        }
       }
     };
 
@@ -355,12 +437,28 @@ export default function GlobalChat() {
       );
     });
 
-    const handleTyping = (data: { senderRole: string, targetRole: string, isTyping: boolean }) => {
+    const handleTyping = (data: { senderId?: string, senderRole: string, targetRole?: string, targetUserId?: string, isTyping: boolean }) => {
       const currentRole = userDataRef.current?.role || "";
-      if (data.targetRole === targetRoleRef.current && data.senderRole !== currentRole) {
-         setTypingRoles(prev => {
+      const myId = (userDataRef.current?.userId || userDataRef.current?.id)?.toString();
+
+      // DM Typing Indicator
+      if (data.targetUserId) {
+        if (data.targetUserId === myId && selectedUserRef.current?.id === data.senderId) {
+          setTypingRoles((prev) => {
+            const label = selectedUserRef.current?.name || "Colleague";
+            if (data.isTyping && !prev.includes(label)) return [...prev, label];
+            if (!data.isTyping) return prev.filter((r) => r !== label);
+            return prev;
+          });
+        }
+        return;
+      }
+
+      // Channel Typing Indicator
+      if (!selectedUserRef.current && data.targetRole === targetRoleRef.current && data.senderRole !== currentRole) {
+         setTypingRoles((prev) => {
             if (data.isTyping && !prev.includes(data.senderRole)) return [...prev, data.senderRole];
-            if (!data.isTyping) return prev.filter(r => r !== data.senderRole);
+            if (!data.isTyping) return prev.filter((r) => r !== data.senderRole);
             return prev;
          });
       }
@@ -377,10 +475,19 @@ export default function GlobalChat() {
   }, []);
 
   const handleTargetSelect = (role: string) => {
+    setSelectedUser(null);
     setTargetRole(role);
     setUnreadByRole(prev => ({ ...prev, [role]: 0 }));
     setPage(1); // reset to newest
     setMessages([]); // clear UI instantly for snappy feel
+    setIsDropdownOpen(false);
+  };
+
+  const handleSelectUserDm = (user: ChatUser) => {
+    setSelectedUser(user);
+    setUnreadByDm(prev => ({ ...prev, [user.id]: 0 }));
+    setPage(1);
+    setMessages([]);
     setIsDropdownOpen(false);
   };
 
@@ -430,19 +537,28 @@ export default function GlobalChat() {
       }
     }
 
+    const payload: any = {
+      message: messageToSend,
+      mediaKey: uploadedMedia?.mediaKey,
+      mediaName: uploadedMedia?.mediaName,
+      mediaType: uploadedMedia?.mediaType,
+      mediaSize: uploadedMedia?.mediaSize,
+    };
+
+    if (selectedUser) {
+      payload.targetUserId = selectedUser.id;
+      payload.targetUserName = selectedUser.name;
+      payload.targetRole = "DM";
+    } else {
+      payload.targetRole = targetRole;
+      payload.taggedRoles = tags;
+    }
+
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          message: messageToSend, 
-          taggedRoles: tags, 
-          targetRole,
-          mediaKey: uploadedMedia?.mediaKey,
-          mediaName: uploadedMedia?.mediaName,
-          mediaType: uploadedMedia?.mediaType,
-          mediaSize: uploadedMedia?.mediaSize,
-        }),
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
         cancelSelectedFile();
@@ -481,7 +597,11 @@ export default function GlobalChat() {
     if (!typingTimeoutRef.current) {
       fetch("/api/chat/typing", {
         method: "POST",
-        body: JSON.stringify({ targetRole, isTyping: true }),
+        body: JSON.stringify({ 
+          targetRole: selectedUser ? undefined : targetRole,
+          targetUserId: selectedUser?.id,
+          isTyping: true 
+        }),
         headers: { "Content-Type": "application/json" }
       }).catch(() => {});
     }
@@ -491,7 +611,11 @@ export default function GlobalChat() {
     typingTimeoutRef.current = setTimeout(() => {
       fetch("/api/chat/typing", {
         method: "POST",
-        body: JSON.stringify({ targetRole, isTyping: false }),
+        body: JSON.stringify({ 
+          targetRole: selectedUser ? undefined : targetRole,
+          targetUserId: selectedUser?.id,
+          isTyping: false 
+        }),
         headers: { "Content-Type": "application/json" }
       }).catch(() => {});
       typingTimeoutRef.current = null;
@@ -587,7 +711,18 @@ export default function GlobalChat() {
     else setUnreadMentions(0); // clear on open
   };
 
-  const totalUnreadCount = Object.values(unreadByRole).reduce((a, b) => a + b, 0);
+  const totalChannelUnread = Object.values(unreadByRole).reduce((a, b) => a + b, 0);
+  const totalDmUnread = Object.values(unreadByDm).reduce((a, b) => a + b, 0);
+  const totalUnreadCount = totalChannelUnread + totalDmUnread;
+
+  const myId = (userData?.userId || userData?.id)?.toString();
+  const filteredUsers = usersList
+    .filter((u) => u.id !== myId)
+    .filter((u) => {
+      if (!userSearchQuery.trim()) return true;
+      const q = userSearchQuery.toLowerCase();
+      return u.name.toLowerCase().includes(q) || u.role.toLowerCase().includes(q);
+    });
 
   const renderMessageContent = (msg: string) => {
     return msg.split(" ").map((word, i) => {
@@ -639,55 +774,182 @@ export default function GlobalChat() {
           {/* Header */}
           <div className="bg-transparent p-3 sm:p-4 border-b border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center flex-shrink-0">
-                <MessageSquare size={18} className="text-blue-600 dark:text-blue-400" />
-              </div>
+              {selectedUser ? (
+                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-sm flex items-center justify-center flex-shrink-0 shadow-sm">
+                  {selectedUser.name.charAt(0).toUpperCase()}
+                </div>
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center flex-shrink-0">
+                  <MessageSquare size={18} className="text-blue-600 dark:text-blue-400" />
+                </div>
+              )}
               <div className="flex flex-col">
                 <div className="relative flex items-center w-fit">
                   <button 
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     className="flex items-center gap-2 font-bold text-[15.5px] text-slate-800 dark:text-white bg-transparent border-none focus:outline-none cursor-pointer p-0 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                   >
-                    {targetRole === "All" ? "Global Team Chat" : targetRole}
+                    <span>{selectedUser ? selectedUser.name : targetRole === "All" ? "Global Team Chat" : targetRole}</span>
                     <ChevronDown size={16} className={`text-slate-400 transition-transform duration-300 ${isDropdownOpen ? "rotate-180" : ""}`} />
                   </button>
                   
                   {isDropdownOpen && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
-                      <div className="absolute top-full left-0 mt-2 w-48 bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/50 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] z-50 py-2 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                        <button
-                          onClick={() => handleTargetSelect("All")}
-                          className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${targetRole === "All" ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50"}`}
-                        >
-                          <span>Global Team Chat</span>
-                          {(unreadByRole["All"] || 0) > 0 && (
-                            <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm animate-in zoom-in">
-                              {unreadByRole["All"]}
-                            </span>
-                          )}
-                        </button>
-                        {ROLES.map(r => (
+                      <div className="absolute top-full left-0 mt-2 w-64 sm:w-72 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-slate-200/70 dark:border-slate-700/70 rounded-2xl shadow-[0_12px_40px_rgb(0,0,0,0.18)] z-50 py-2.5 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        {/* Tab Toggle: Channels vs DMs */}
+                        <div className="px-3 pb-2 border-b border-slate-200/60 dark:border-slate-700/60 flex items-center gap-1.5">
                           <button
-                            key={r}
-                            onClick={() => handleTargetSelect(r)}
-                            className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${targetRole === r ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50"}`}
+                            type="button"
+                            onClick={() => setChatTab("channels")}
+                            className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                              chatTab === "channels"
+                                ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm"
+                                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                            }`}
                           >
-                            <span>{r}</span>
-                            {(unreadByRole[r] || 0) > 0 && (
-                              <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm animate-in zoom-in">
-                                {unreadByRole[r]}
+                            <Users size={13} />
+                            <span>Channels</span>
+                            {totalChannelUnread > 0 && (
+                              <span className="bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">
+                                {totalChannelUnread}
                               </span>
                             )}
                           </button>
-                        ))}
+                          <button
+                            type="button"
+                            onClick={() => setChatTab("dms")}
+                            className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                              chatTab === "dms"
+                                ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm"
+                                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                            }`}
+                          >
+                            <User size={13} />
+                            <span>Direct (1:1)</span>
+                            {totalDmUnread > 0 && (
+                              <span className="bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">
+                                {totalDmUnread}
+                              </span>
+                            )}
+                          </button>
+                        </div>
+
+                        {chatTab === "channels" ? (
+                          <div className="max-h-64 overflow-y-auto custom-scrollbar pt-1">
+                            <button
+                              onClick={() => handleTargetSelect("All")}
+                              className={`w-full flex items-center justify-between px-3.5 py-2.5 text-xs transition-colors ${
+                                !selectedUser && targetRole === "All"
+                                  ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold"
+                                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                              }`}
+                            >
+                              <span className="flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                Global Team Chat
+                              </span>
+                              {(unreadByRole["All"] || 0) > 0 && (
+                                <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm animate-in zoom-in">
+                                  {unreadByRole["All"]}
+                                </span>
+                              )}
+                            </button>
+
+                            <div className="px-3.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                              Departments
+                            </div>
+
+                            {ROLES.map((r) => (
+                              <button
+                                key={r}
+                                onClick={() => handleTargetSelect(r)}
+                                className={`w-full flex items-center justify-between px-3.5 py-2 text-xs transition-colors ${
+                                  !selectedUser && targetRole === r
+                                    ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold"
+                                    : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                                }`}
+                              >
+                                <span>{r}</span>
+                                {(unreadByRole[r] || 0) > 0 && (
+                                  <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm animate-in zoom-in">
+                                    {unreadByRole[r]}
+                                  </span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="pt-2">
+                            {/* Search Box */}
+                            <div className="px-3 mb-2">
+                              <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
+                                <Search size={12} className="text-slate-400" />
+                                <input
+                                  type="text"
+                                  value={userSearchQuery}
+                                  onChange={(e) => setUserSearchQuery(e.target.value)}
+                                  placeholder="Search colleague..."
+                                  className="w-full bg-transparent text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="max-h-56 overflow-y-auto custom-scrollbar">
+                              {filteredUsers.length === 0 ? (
+                                <div className="py-4 text-center text-xs text-slate-400">
+                                  No team members found
+                                </div>
+                              ) : (
+                                filteredUsers.map((u) => {
+                                  const isSelected = selectedUser?.id === u.id;
+                                  const unreadCount = unreadByDm[u.id] || 0;
+                                  return (
+                                    <button
+                                      key={u.id}
+                                      onClick={() => handleSelectUserDm(u)}
+                                      className={`w-full flex items-center justify-between px-3 py-2 text-xs transition-colors ${
+                                        isSelected
+                                          ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold"
+                                          : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-2.5 min-w-0">
+                                        <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white font-bold text-[11px] flex items-center justify-center flex-shrink-0">
+                                          {u.name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div className="flex flex-col text-left min-w-0">
+                                          <span className="truncate text-xs font-medium text-slate-800 dark:text-slate-200">
+                                            {u.name}
+                                          </span>
+                                          <span className="text-[10px] text-slate-400 truncate">
+                                            {u.role}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      {unreadCount > 0 && (
+                                        <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm animate-in zoom-in">
+                                          {unreadCount}
+                                        </span>
+                                      )}
+                                    </button>
+                                  );
+                                })
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </>
                   )}
                 </div>
                 <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Live • {targetRole === "All" ? "Public" : "Private Encrypted"}
+                  {selectedUser
+                    ? `1:1 Direct Message • ${selectedUser.role}`
+                    : targetRole === "All"
+                    ? "Live • Public"
+                    : "Live • Private Encrypted"}
                 </div>
               </div>
             </div>
@@ -942,7 +1204,15 @@ export default function GlobalChat() {
                     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
                   }, 300);
                 }}
-                placeholder={selectedFile ? "Add an optional caption..." : targetRole === "All" ? "Type a message... use @ to tag" : `Private message to ${targetRole}...`}
+                placeholder={
+                  selectedFile
+                    ? "Add an optional caption..."
+                    : selectedUser
+                    ? `Message ${selectedUser.name}...`
+                    : targetRole === "All"
+                    ? "Type a message... use @ to tag"
+                    : `Private message to ${targetRole}...`
+                }
                 className="flex-1 bg-white/50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 focus:bg-white dark:focus:bg-slate-800 focus:border-slate-400 dark:focus:border-slate-500 focus:ring-0 rounded-full px-4 py-2.5 text-[13.5px] transition-all shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-800 dark:text-slate-200"
               />
               <button 
