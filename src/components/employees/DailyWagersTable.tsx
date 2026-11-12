@@ -14,6 +14,8 @@ interface WorkerSummary {
   outTime: string | null;
   totalHours: number;
   totalPayment: number;
+  paymentStatus?: "Pending" | "Paid";
+  paidAt?: string | null;
   updatedRole: string;
 }
 
@@ -24,9 +26,18 @@ interface DailyWagersTableProps {
   onEdit: (worker: WorkerSummary) => void;
   onUpdateWorker: (worker: WorkerSummary) => void;
   onView: (worker: WorkerSummary) => void;
+  onTogglePayment?: (worker: WorkerSummary) => void;
 }
 
-export default function DailyWagersTable({ workers, loading, userRole = "", onEdit, onUpdateWorker, onView }: DailyWagersTableProps) {
+export default function DailyWagersTable({ 
+  workers, 
+  loading, 
+  userRole = "", 
+  onEdit, 
+  onUpdateWorker, 
+  onView,
+  onTogglePayment 
+}: DailyWagersTableProps) {
   const formatTime = (isoString: string | null) => {
     if (!isoString) return "-";
     return format(new Date(isoString), "hh:mm a");
@@ -137,6 +148,20 @@ export default function DailyWagersTable({ workers, loading, userRole = "", onEd
                  <div className="flex flex-col border-l border-gray-100 dark:border-gray-800">
                    <span className="text-[10px] uppercase text-green-600 dark:text-green-500">Pay</span>
                    <span className="font-medium text-green-600 dark:text-green-400">{worker.totalPayment > 0 ? `₹${worker.totalPayment}` : "-"}</span>
+                   {worker.totalPayment > 0 && (
+                     <button
+                       type="button"
+                       onClick={() => onTogglePayment && onTogglePayment(worker)}
+                       className={`mt-1 text-[9px] font-bold rounded px-1.5 py-0.5 transition-colors ${
+                         worker.paymentStatus === "Paid"
+                           ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
+                           : "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
+                       }`}
+                       title="Click to toggle Paid/Pending"
+                     >
+                       {worker.paymentStatus === "Paid" ? "✓ Paid" : "⏳ Pending"}
+                     </button>
+                   )}
                  </div>
               </div>
 
@@ -216,8 +241,24 @@ export default function DailyWagersTable({ workers, loading, userRole = "", onEd
                 <td className="px-6 py-4 text-center">
                   <span className="font-medium">{worker.totalHours > 0 ? worker.totalHours : "-"}</span>
                 </td>
-                <td className="px-6 py-4 text-center font-medium text-green-600 dark:text-green-400">
-                  {worker.totalPayment > 0 ? `₹${worker.totalPayment}` : "-"}
+                <td className="px-6 py-4 text-center">
+                  <div className="font-semibold text-green-600 dark:text-green-400">
+                    {worker.totalPayment > 0 ? `₹${worker.totalPayment}` : "-"}
+                  </div>
+                  {worker.totalPayment > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => onTogglePayment && onTogglePayment(worker)}
+                      className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold transition-all ${
+                        worker.paymentStatus === "Paid"
+                          ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400"
+                          : "bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400"
+                      }`}
+                      title="Click to toggle Paid / Pending"
+                    >
+                      {worker.paymentStatus === "Paid" ? "✓ Paid" : "⏳ Pending"}
+                    </button>
+                  )}
                 </td>
                 <td className="px-6 py-4 text-center text-xs">
                   <span className="rounded-full bg-gray-100 px-2 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-300">

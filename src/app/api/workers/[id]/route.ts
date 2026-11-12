@@ -77,6 +77,8 @@ export async function GET(
       logSummary: {
         totalHours: dailyLog?.totalHoursCalculated || 0,
         totalPayment: dailyLog?.totalPaymentCalculated || 0,
+        paymentStatus: dailyLog?.paymentStatus || "Pending",
+        paidAt: dailyLog?.paidAt || null,
         logs: sortedLogs,
       },
       monthlySummary,

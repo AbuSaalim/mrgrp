@@ -88,6 +88,35 @@ export default function WorkerDailyViewPage() {
     }
   };
 
+  const handleTogglePaymentStatus = async () => {
+    if (!data?.logSummary?.totalPayment || data.logSummary.totalPayment <= 0) return;
+
+    const currentStatus = data.logSummary.paymentStatus || "Pending";
+    const nextStatus = currentStatus === "Paid" ? "Pending" : "Paid";
+
+    try {
+      const res = await fetch("/api/daily-wager/settle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workerId,
+          date: selectedDate,
+          status: nextStatus,
+        }),
+      });
+
+      if (res.ok) {
+        await fetchWorkerData();
+      } else {
+        const err = await res.json();
+        alert(err.message || "Failed to update payment status");
+      }
+    } catch (err) {
+      console.error("Payment status update error:", err);
+      alert("Failed to update payment status");
+    }
+  };
+
   const getActionDetails = (action: string) => {
     switch (action) {
       case "IN":
@@ -176,6 +205,20 @@ export default function WorkerDailyViewPage() {
                         {data.logSummary.totalPayment > 0 ? `₹${data.logSummary.totalPayment}` : "-"}
                       </p>
                     </div>
+                    {data.logSummary.totalPayment > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleTogglePaymentStatus}
+                        className={`rounded-lg px-2.5 py-2 text-xs font-bold transition-all shrink-0 ${
+                          data.logSummary.paymentStatus === "Paid"
+                            ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-400"
+                            : "bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-950/60 dark:text-amber-400"
+                        }`}
+                        title="Click to toggle Paid / Pending"
+                      >
+                        {data.logSummary.paymentStatus === "Paid" ? "✓ Paid" : "⏳ Pending"}
+                      </button>
+                    )}
                   </div>
                 </div>
                 

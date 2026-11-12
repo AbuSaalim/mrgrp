@@ -91,6 +91,8 @@ export async function GET(request: Request) {
         outTime,
         totalHours: workerLog?.totalHoursCalculated || 0,
         totalPayment: workerLog?.totalPaymentCalculated || 0,
+        paymentStatus: workerLog?.paymentStatus || "Pending",
+        paidAt: workerLog?.paidAt || null,
         updatedRole: updatedByRole,
       };
     });

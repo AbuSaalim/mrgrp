@@ -14,6 +14,9 @@ export interface IDailyWagerLog extends Document {
   logs: ILogEntry[];
   totalHoursCalculated?: number;
   totalPaymentCalculated?: number;
+  paymentStatus?: "Pending" | "Paid";
+  paidAt?: Date;
+  paidBy?: mongoose.Types.ObjectId;
 }
 
 const LogEntrySchema = new Schema<ILogEntry>(
@@ -38,6 +41,13 @@ const DailyWagerLogSchema = new Schema<IDailyWagerLog>(
     logs: [LogEntrySchema],
     totalHoursCalculated: { type: Number, default: 0 },
     totalPaymentCalculated: { type: Number, default: 0 },
+    paymentStatus: {
+      type: String,
+      enum: ["Pending", "Paid"],
+      default: "Pending",
+    },
+    paidAt: { type: Date },
+    paidBy: { type: Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
 );

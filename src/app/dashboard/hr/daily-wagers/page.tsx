@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { PlusCircle, Search, Calendar as CalendarIcon, RefreshCw, Users, Clock, IndianRupee, Building2 } from "lucide-react";
+import { PlusCircle, Search, Calendar as CalendarIcon, RefreshCw, Users, Clock, IndianRupee, Building2, Download } from "lucide-react";
 import AddWorkerModal from "@/components/employees/AddWorkerModal";
 import EditWorkerModal from "@/components/employees/EditWorkerModal";
 import DailyWagersTable from "@/components/employees/DailyWagersTable";
@@ -84,6 +84,81 @@ export default function DailyWagersPage() {
 
   const handleViewWorker = (worker: any) => {
     router.push(`/dashboard/hr/daily-wagers/${worker._id}`);
+  };
+
+  const handleTogglePayment = async (worker: any) => {
+    if (!worker.totalPayment || worker.totalPayment <= 0) return;
+
+    const nextStatus = worker.paymentStatus === "Paid" ? "Pending" : "Paid";
+    try {
+      const res = await fetch("/api/daily-wager/settle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workerId: worker._id,
+          date: selectedDate,
+          status: nextStatus,
+        }),
+      });
+
+      if (res.ok) {
+        setRefreshKey((prev) => prev + 1);
+      } else {
+        const err = await res.json();
+        alert(err.message || "Failed to update payment status");
+      }
+    } catch (err) {
+      console.error("Payment status update error:", err);
+      alert("Failed to update payment status");
+    }
+  };
+
+  const handleExportCSV = () => {
+    if (!workers || workers.length === 0) {
+      alert("No daily wager data available to export for this date.");
+      return;
+    }
+
+    const headers = [
+      "Worker ID",
+      "Worker Name",
+      "Skill",
+      "Phone Number",
+      "Status",
+      "Current Site",
+      "IN Time",
+      "OUT Time",
+      "Total Hours",
+      "Hourly Rate (INR)",
+      "Daily Wage Total (INR)",
+      "Payment Status",
+      "Date"
+    ];
+
+    const rows = filteredWorkers.map((w: any, idx: number) => [
+      `#${idx + 1}`,
+      `"${(w.name || '').replace(/"/g, '""')}"`,
+      `"${(w.skill || '').replace(/"/g, '""')}"`,
+      `"${w.phoneNumber || '-'}"`,
+      `"${w.currentStatus || '-'}"`,
+      `"${(w.currentSite || '-').replace(/"/g, '""')}"`,
+      `"${w.inTime ? format(new Date(w.inTime), 'hh:mm a') : '-'}"`,
+      `"${w.outTime ? format(new Date(w.outTime), 'hh:mm a') : '-'}"`,
+      w.totalHours || 0,
+      w.perHourRate || 0,
+      w.totalPayment || 0,
+      `"${w.paymentStatus || 'Pending'}"`,
+      selectedDate
+    ]);
+
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Daily_Wagers_Report_${selectedDate}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Summary Metrics calculations
@@ -240,6 +315,15 @@ export default function DailyWagersPage() {
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
 
+          <button 
+            onClick={handleExportCSV}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors shrink-0"
+            title="Export CSV for selected date"
+          >
+            <Download className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            <span className="hidden sm:inline">Export CSV</span>
+          </button>
+
           {(userRole.includes("HR") || userRole.includes("Super") || userRole.includes("Admin")) && (
             <button
               onClick={() => setIsAddModalOpen(true)}
@@ -261,6 +345,7 @@ export default function DailyWagersPage() {
         onEdit={handleEditWorker}
         onUpdateWorker={handleUpdateWorkerClick}
         onView={handleViewWorker}
+        onTogglePayment={handleTogglePayment}
       />
 
       {/* Modals */}
