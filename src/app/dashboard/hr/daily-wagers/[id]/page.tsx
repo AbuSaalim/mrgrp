@@ -12,7 +12,8 @@ import {
   CheckCircle2, 
   ArrowRightLeft, 
   LogOut,
-  MessageSquare
+  MessageSquare,
+  Trash2
 } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -27,29 +28,65 @@ export default function WorkerDailyViewPage() {
   );
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState("");
+  const [deletingLogId, setDeletingLogId] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchWorkerData = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/workers/${workerId}?date=${selectedDate}`);
-        if (res.ok) {
-          const result = await res.json();
-          setData(result);
-        } else {
-          console.error("Failed to fetch worker details");
-        }
-      } catch (err) {
-        console.error("Error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((d) => {
+        if (d.role) setUserRole(d.role);
+      })
+      .catch((err) => console.error("Failed to fetch user role:", err));
+  }, []);
 
+  const fetchWorkerData = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/workers/${workerId}?date=${selectedDate}`);
+      if (res.ok) {
+        const result = await res.json();
+        setData(result);
+      } else {
+        console.error("Failed to fetch worker details");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     if (workerId) {
       fetchWorkerData();
     }
   }, [workerId, selectedDate]);
+
+  const handleDeleteLog = async (logId: string) => {
+    if (!confirm("Are you sure you want to delete this log entry? Total hours and payment will be recalculated.")) {
+      return;
+    }
+
+    setDeletingLogId(logId);
+    try {
+      const res = await fetch(
+        `/api/daily-wager/log?workerId=${workerId}&date=${selectedDate}&logId=${logId}`,
+        { method: "DELETE" }
+      );
+      if (res.ok) {
+        await fetchWorkerData();
+      } else {
+        const errData = await res.json();
+        alert(errData.message || "Failed to delete log entry");
+      }
+    } catch (err) {
+      console.error("Error deleting log:", err);
+      alert("Failed to delete log entry");
+    } finally {
+      setDeletingLogId(null);
+    }
+  };
 
   const getActionDetails = (action: string) => {
     switch (action) {
@@ -208,10 +245,24 @@ export default function WorkerDailyViewPage() {
                       
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center justify-between">
-                          <h4 className="text-base font-bold text-gray-900 dark:text-white">{details.label}</h4>
-                          <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                            {format(new Date(log.time), "hh:mm a")}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-base font-bold text-gray-900 dark:text-white">{details.label}</h4>
+                            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                              {format(new Date(log.time), "hh:mm a")}
+                            </span>
+                          </div>
+
+                          {/* Delete Entry (HR / Super Admin) */}
+                          {(userRole.includes("HR") || userRole.includes("Admin") || userRole.includes("Super")) && (
+                            <button
+                              onClick={() => handleDeleteLog(log._id)}
+                              disabled={deletingLogId === log._id}
+                              className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400 transition-colors"
+                              title="Delete this log entry"
+                            >
+                              <Trash2 className={`h-4 w-4 ${deletingLogId === log._id ? 'animate-spin text-red-500' : ''}`} />
+                            </button>
+                          )}
                         </div>
                         
                         <div className="mt-1 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">

@@ -19,6 +19,42 @@ async function authenticate(request: Request) {
   }
 }
 
+function calculateTotalHoursAndPayment(logs: any[], perHourRate: number) {
+  let totalHours = 0;
+  const sortedLogs = [...logs].sort(
+    (a: any, b: any) => new Date(a.time).getTime() - new Date(b.time).getTime()
+  );
+
+  let currentWorkStartTime: number | null = null;
+
+  for (const log of sortedLogs) {
+    const logTime = new Date(log.time).getTime();
+
+    if (log.action === "IN") {
+      currentWorkStartTime = logTime;
+    } else if (log.action === "TRANSFER") {
+      // Transfer keeps worker actively working at the new site
+      if (currentWorkStartTime === null) {
+        currentWorkStartTime = logTime;
+      }
+    } else if (log.action === "OUT") {
+      if (currentWorkStartTime !== null) {
+        const diffInHours = (logTime - currentWorkStartTime) / (1000 * 60 * 60);
+        if (diffInHours > 0) {
+          totalHours += diffInHours;
+        }
+        currentWorkStartTime = null; // shift closed
+      }
+    }
+  }
+
+  const totalPayment = totalHours * (perHourRate || 0);
+  return {
+    totalHours: Number(totalHours.toFixed(2)),
+    totalPayment: Number(totalPayment.toFixed(2)),
+  };
+}
+
 export async function POST(request: Request) {
   try {
     const user = await authenticate(request);
@@ -107,43 +143,76 @@ export async function POST(request: Request) {
     }
 
     // Recalculate total hours and payment for the day based on chronological work segments
-    let totalHours = 0;
-    const sortedLogs = [...dailyLog.logs].sort(
-      (a: any, b: any) => new Date(a.time).getTime() - new Date(b.time).getTime()
-    );
-
-    let currentWorkStartTime: number | null = null;
-
-    for (const log of sortedLogs) {
-      const logTime = new Date(log.time).getTime();
-
-      if (log.action === "IN") {
-        currentWorkStartTime = logTime;
-      } else if (log.action === "TRANSFER") {
-        // Transfer keeps worker actively working at the new site
-        if (currentWorkStartTime === null) {
-          currentWorkStartTime = logTime;
-        }
-      } else if (log.action === "OUT") {
-        if (currentWorkStartTime !== null) {
-          const diffInHours = (logTime - currentWorkStartTime) / (1000 * 60 * 60);
-          if (diffInHours > 0) {
-            totalHours += diffInHours;
-          }
-          currentWorkStartTime = null; // shift closed
-        }
-      }
-    }
-
-    const totalPayment = totalHours * (worker.perHourRate || 0);
-    dailyLog.totalHoursCalculated = Number(totalHours.toFixed(2));
-    dailyLog.totalPaymentCalculated = Number(totalPayment.toFixed(2));
+    const { totalHours, totalPayment } = calculateTotalHoursAndPayment(dailyLog.logs, worker.perHourRate || 0);
+    dailyLog.totalHoursCalculated = totalHours;
+    dailyLog.totalPaymentCalculated = totalPayment;
 
     await dailyLog.save();
 
     return NextResponse.json({ message: `Log ${action} recorded successfully`, log: dailyLog }, { status: 201 });
   } catch (error: any) {
     console.error("POST Daily Wager Log Error:", error);
+    return NextResponse.json({ message: "Internal Server Error", error: error.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const user = await authenticate(request);
+    if (!user || !user.userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+    const { searchParams } = new URL(request.url);
+    const workerId = searchParams.get("workerId");
+    const dateStr = searchParams.get("date");
+    const logId = searchParams.get("logId");
+
+    if (!workerId || !dateStr || !logId) {
+      return NextResponse.json({ message: "Missing required parameters: workerId, date, logId" }, { status: 400 });
+    }
+
+    await connectToDatabase();
+
+    const dailyLog = await DailyWagerLog.findOne({ workerId, date: dateStr });
+    if (!dailyLog) {
+      return NextResponse.json({ message: "Log record for this date not found" }, { status: 404 });
+    }
+
+    const initialLength = dailyLog.logs.length;
+    dailyLog.logs = dailyLog.logs.filter((l: any) => l._id.toString() !== logId);
+
+    if (dailyLog.logs.length === initialLength) {
+      return NextResponse.json({ message: "Target log entry not found in today's record" }, { status: 404 });
+    }
+
+    // If all logs are deleted, remove the daily document completely
+    if (dailyLog.logs.length === 0) {
+      await DailyWagerLog.deleteOne({ _id: dailyLog._id });
+      return NextResponse.json({
+        message: "Log entry deleted, day record cleared",
+        totalHours: 0,
+        totalPayment: 0,
+        logs: [],
+      }, { status: 200 });
+    }
+
+    // Find worker to recalculate payment
+    const worker = await Worker.findById(workerId);
+    const perHourRate = worker?.perHourRate || 0;
+
+    const { totalHours, totalPayment } = calculateTotalHoursAndPayment(dailyLog.logs, perHourRate);
+    dailyLog.totalHoursCalculated = totalHours;
+    dailyLog.totalPaymentCalculated = totalPayment;
+
+    await dailyLog.save();
+
+    return NextResponse.json({
+      message: "Log entry deleted successfully",
+      totalHours,
+      totalPayment,
+      logs: dailyLog.logs,
+    }, { status: 200 });
+  } catch (error: any) {
+    console.error("DELETE Daily Wager Log Error:", error);
     return NextResponse.json({ message: "Internal Server Error", error: error.message }, { status: 500 });
   }
 }

@@ -20,8 +20,20 @@ export default function LogActionModal({ isOpen, onClose, onActionLogged, worker
     remark: "",
     time: new Date(),
   });
+  const [availableSites, setAvailableSites] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    fetch("/api/daily-wager/sites")
+      .then((res) => (res.ok ? res.json() : { sites: [] }))
+      .then((data) => {
+        if (data.sites && Array.isArray(data.sites)) {
+          setAvailableSites(data.sites);
+        }
+      })
+      .catch((err) => console.error("Failed to load sites:", err));
+  }, []);
 
   // Reset form when worker changes or modal opens
   useEffect(() => {
@@ -166,12 +178,39 @@ export default function LogActionModal({ isOpen, onClose, onActionLogged, worker
               <input
                 type="text"
                 name="siteName"
+                list="site-options"
                 required={showSiteInput}
                 value={formData.siteName}
                 onChange={handleChange}
                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                placeholder="e.g. Building A"
+                placeholder="Select or enter site name..."
+                autoComplete="off"
               />
+              <datalist id="site-options">
+                {availableSites.map((site) => (
+                  <option key={site} value={site} />
+                ))}
+              </datalist>
+
+              {availableSites.length > 0 && (
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <span className="text-[11px] text-gray-400 font-medium">Quick select:</span>
+                  {availableSites.slice(0, 6).map((site) => (
+                    <button
+                      key={site}
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, siteName: site }))}
+                      className={`rounded-md px-2 py-0.5 text-xs font-medium transition-colors ${
+                        formData.siteName === site
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                      }`}
+                    >
+                      {site}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
