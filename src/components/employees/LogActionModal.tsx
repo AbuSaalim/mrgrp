@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, CheckCircle2, ArrowRightLeft, LogOut } from "lucide-react";
+import { X, CheckCircle2, ArrowRightLeft, LogOut, IndianRupee } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -11,18 +11,36 @@ interface LogActionModalProps {
   onActionLogged: () => void;
   worker: any; // The worker object passed from the table
   selectedDate?: string; // Optional prop to default the date
+  userRole?: string;
 }
 
-export default function LogActionModal({ isOpen, onClose, onActionLogged, worker, selectedDate }: LogActionModalProps) {
+export default function LogActionModal({ 
+  isOpen, 
+  onClose, 
+  onActionLogged, 
+  worker, 
+  selectedDate,
+  userRole = "" 
+}: LogActionModalProps) {
   const [formData, setFormData] = useState({
     action: "",
     siteName: "",
     remark: "",
     time: new Date(),
+    perHourRate: "",
   });
   const [availableSites, setAvailableSites] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const isPrivileged = Boolean(
+    userRole && (
+      userRole.includes("Super") || 
+      userRole.includes("Admin") || 
+      userRole.includes("HR") || 
+      userRole.includes("System")
+    )
+  );
 
   useEffect(() => {
     fetch("/api/daily-wager/sites")
@@ -52,6 +70,7 @@ export default function LogActionModal({ isOpen, onClose, onActionLogged, worker
         siteName: worker.currentSite && worker.currentSite !== "N/A" ? worker.currentSite : "",
         remark: "",
         time: now,
+        perHourRate: worker.perHourRate !== undefined ? String(worker.perHourRate) : "",
       });
       setError("");
     }
@@ -87,7 +106,7 @@ export default function LogActionModal({ isOpen, onClose, onActionLogged, worker
     setError("");
 
     try {
-      const payload = {
+      const payload: any = {
         workerId: worker._id,
         action: formData.action,
         siteName: formData.action === "OUT" ? (worker.currentSite !== "N/A" ? worker.currentSite : "Unknown Site") : formData.siteName,
@@ -95,6 +114,10 @@ export default function LogActionModal({ isOpen, onClose, onActionLogged, worker
         time: formData.time.toISOString(),
         date: selectedDate,
       };
+
+      if (isPrivileged && formData.perHourRate !== "") {
+        payload.perHourRate = Number(formData.perHourRate);
+      }
 
       const response = await fetch("/api/daily-wager/log", {
         method: "POST",
@@ -232,6 +255,34 @@ export default function LogActionModal({ isOpen, onClose, onActionLogged, worker
               />
             </div>
           </div>
+
+          {/* Per Hour Rate Adjustment - Visible ONLY to Super Admin and HR */}
+          {isPrivileged && (
+            <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-3.5 dark:border-blue-900/30 dark:bg-blue-950/20">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
+                  <IndianRupee className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                  Per Hour Rate (₹/hr)
+                </label>
+                <span className="text-[10px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 px-2 py-0.5 rounded-full">
+                  Admin / HR Only
+                </span>
+              </div>
+              <input
+                type="number"
+                name="perHourRate"
+                min="0"
+                step="1"
+                value={formData.perHourRate}
+                onChange={handleChange}
+                placeholder="e.g. 50"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              />
+              <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
+                Adjust hourly rate up or down; today's daily pay will recalculate automatically.
+              </p>
+            </div>
+          )}
 
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">

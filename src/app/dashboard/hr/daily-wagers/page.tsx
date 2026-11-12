@@ -366,6 +366,7 @@ export default function DailyWagersPage() {
         onActionLogged={handleActionLogged}
         worker={selectedWorkerForAction}
         selectedDate={selectedDate}
+        userRole={userRole}
       />
     </div>
   );
