@@ -83,10 +83,40 @@ export default function GlobalChat() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isFetching, setIsFetching] = useState(false);
+  const [isFetchingOlder, setIsFetchingOlder] = useState(false);
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     userDataRef.current = userData;
   }, [userData]);
+
+  // Mobile virtual keyboard viewport height tracker
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const updateViewport = () => {
+      if (window.visualViewport) {
+        setViewportHeight(window.visualViewport.height);
+      } else {
+        setViewportHeight(window.innerHeight);
+      }
+    };
+
+    updateViewport();
+    window.visualViewport?.addEventListener("resize", updateViewport);
+    window.visualViewport?.addEventListener("scroll", updateViewport);
+    window.addEventListener("resize", updateViewport);
+
+    return () => {
+      window.visualViewport?.removeEventListener("resize", updateViewport);
+      window.visualViewport?.removeEventListener("scroll", updateViewport);
+      window.removeEventListener("resize", updateViewport);
+    };
+  }, []);
 
   // Tagging State
   const [showTagMenu, setShowTagMenu] = useState(false);
@@ -98,9 +128,6 @@ export default function GlobalChat() {
   const [isDragging, setIsDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
   const elementStart = useRef({ x: 0, y: 0 });
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     targetRoleRef.current = targetRole;
@@ -130,32 +157,100 @@ export default function GlobalChat() {
     init();
   }, []);
 
-  // Fetch Messages based on targetRole and page
+  // Fetch Messages on targetRole change
   useEffect(() => {
-    async function loadMessages() {
+    async function loadInitialMessages() {
       setIsFetching(true);
       try {
-        const chatRes = await fetch(`/api/chat?targetRole=${targetRole}&page=${page}`);
+        const chatRes = await fetch(`/api/chat?targetRole=${targetRole}&page=1`);
         if (chatRes.ok) {
-           const data = await chatRes.json();
-           if (data.length < 50) setHasMore(false);
-           else setHasMore(true);
-
-           if (page === 1) {
-             setMessages(data);
-             setTimeout(() => messagesEndRef.current?.scrollIntoView(), 50);
-           } else {
-             // Prepend older messages
-             setMessages(prev => [...data, ...prev]);
-           }
+           const data: ChatMessage[] = await chatRes.json();
+           setHasMore(data.length >= 50);
+           setMessages(data);
+           setTimeout(() => messagesEndRef.current?.scrollIntoView(), 50);
         }
       } catch (err) {
         console.error("Load Error", err);
+      } finally {
+        setIsFetching(false);
       }
-      setIsFetching(false);
     }
-    loadMessages();
-  }, [targetRole, page]);
+    setPage(1);
+    loadInitialMessages();
+  }, [targetRole]);
+
+  // Background & Screen Unlock Reconnect Sync
+  useEffect(() => {
+    const handleSyncOnVisible = async () => {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const currentTarget = targetRoleRef.current;
+        const res = await fetch(`/api/chat?targetRole=${currentTarget}&page=1`);
+        if (res.ok) {
+          const latestMessages: ChatMessage[] = await res.json();
+          setMessages((prev) => {
+            const existingMap = new Map(prev.map((m) => [m._id, m]));
+            let hasNew = false;
+            for (const msg of latestMessages) {
+              if (!existingMap.has(msg._id)) {
+                hasNew = true;
+              }
+              existingMap.set(msg._id, msg);
+            }
+            if (!hasNew) return prev;
+            const merged = Array.from(existingMap.values());
+            merged.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+            return merged;
+          });
+        }
+      } catch (err) {
+        console.error("Sync error on visible:", err);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleSyncOnVisible);
+    window.addEventListener("focus", handleSyncOnVisible);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleSyncOnVisible);
+      window.removeEventListener("focus", handleSyncOnVisible);
+    };
+  }, []);
+
+  const handleLoadOlder = async () => {
+    if (isFetchingOlder || !hasMore) return;
+    const container = messagesContainerRef.current;
+    const prevScrollHeight = container?.scrollHeight || 0;
+    const prevScrollTop = container?.scrollTop || 0;
+
+    setIsFetchingOlder(true);
+    try {
+      const nextPage = page + 1;
+      const chatRes = await fetch(`/api/chat?targetRole=${targetRole}&page=${nextPage}`);
+      if (chatRes.ok) {
+        const olderData: ChatMessage[] = await chatRes.json();
+        setHasMore(olderData.length >= 50);
+        setPage(nextPage);
+
+        setMessages((prev) => {
+          const existingIds = new Set(prev.map((m) => m._id));
+          const filteredOlder = olderData.filter((m) => !existingIds.has(m._id));
+          return [...filteredOlder, ...prev];
+        });
+
+        // Maintain scroll position so chat does not jump
+        requestAnimationFrame(() => {
+          if (container) {
+            container.scrollTop = container.scrollHeight - prevScrollHeight + prevScrollTop;
+          }
+        });
+      }
+    } catch (err) {
+      console.error("Load older error", err);
+    } finally {
+      setIsFetchingOlder(false);
+    }
+  };
 
   // Set up Pusher - only once on mount with stable ref
   useEffect(() => {
@@ -451,7 +546,10 @@ export default function GlobalChat() {
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 sm:inset-auto sm:bottom-24 sm:right-6 w-full h-full sm:w-[420px] sm:h-[550px] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl sm:rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border-0 sm:border sm:border-white/20 dark:sm:border-white/10 flex flex-col overflow-hidden z-[110] flex-shrink-0 animate-in slide-in-from-bottom-5">
+        <div 
+          style={{ height: viewportHeight && typeof window !== "undefined" && window.innerWidth < 640 ? `${viewportHeight}px` : undefined }}
+          className="fixed inset-0 sm:inset-auto sm:bottom-24 sm:right-6 w-full h-[100dvh] sm:h-[550px] sm:w-[420px] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl sm:rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border-0 sm:border sm:border-white/20 dark:sm:border-white/10 flex flex-col overflow-hidden z-[110] flex-shrink-0 animate-in slide-in-from-bottom-5"
+        >
           {/* Header */}
           <div className="bg-transparent p-3 sm:p-4 border-b border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -513,17 +611,18 @@ export default function GlobalChat() {
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-transparent custom-scrollbar relative">
+          <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-transparent custom-scrollbar relative">
             {isFetching && (
                <div className="text-center py-2 text-xs text-slate-400">Loading messages...</div>
             )}
-            {!isFetching && hasMore && messages.length >= 50 && (
+            {hasMore && messages.length >= 50 && (
               <div className="flex justify-center mb-4">
                 <button 
-                  onClick={() => setPage(p => p + 1)}
-                  className="px-3 py-1 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 rounded-full text-xs text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 shadow-sm transition-colors"
+                  onClick={handleLoadOlder}
+                  disabled={isFetchingOlder}
+                  className="px-3 py-1 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 rounded-full text-xs text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 shadow-sm transition-colors disabled:opacity-50"
                 >
-                  Load older messages
+                  {isFetchingOlder ? "Loading older messages..." : "Load older messages"}
                 </button>
               </div>
             )}
@@ -667,6 +766,11 @@ export default function GlobalChat() {
                 type="text"
                 value={inputText}
                 onChange={handleInputChange}
+                onFocus={() => {
+                  setTimeout(() => {
+                    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+                  }, 300);
+                }}
                 placeholder={targetRole === "All" ? "Type a message... use @ to tag" : `Private message to ${targetRole}...`}
                 className="flex-1 bg-white/50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 focus:bg-white dark:focus:bg-slate-800 focus:border-slate-400 dark:focus:border-slate-500 focus:ring-0 rounded-full px-4 py-2.5 text-[13.5px] transition-all shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-800 dark:text-slate-200"
               />
