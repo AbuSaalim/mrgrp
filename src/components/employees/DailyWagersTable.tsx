@@ -1,5 +1,5 @@
 import React from "react";
-import { Edit2, Eye, Clock, CheckCircle2, ArrowRightLeft, LogOut, AlertCircle, UserCog } from "lucide-react";
+import { Edit2, Eye, Clock, CheckCircle2, ArrowRightLeft, LogOut, AlertCircle, UserCog, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 
 interface WorkerSummary {
@@ -27,6 +27,7 @@ interface DailyWagersTableProps {
   onUpdateWorker: (worker: WorkerSummary) => void;
   onView: (worker: WorkerSummary) => void;
   onTogglePayment?: (worker: WorkerSummary) => void;
+  onDeleteWorker?: (worker: WorkerSummary) => void;
 }
 
 export default function DailyWagersTable({ 
@@ -36,7 +37,8 @@ export default function DailyWagersTable({
   onEdit, 
   onUpdateWorker, 
   onView,
-  onTogglePayment 
+  onTogglePayment,
+  onDeleteWorker 
 }: DailyWagersTableProps) {
   const isHRorAdmin = Boolean(
     userRole && (
@@ -173,27 +175,36 @@ export default function DailyWagersTable({
                  </div>
               </div>
 
-              <div className="flex justify-between gap-2 border-t border-gray-100 dark:border-gray-800 pt-3">
+              <div className="flex justify-between gap-1.5 sm:gap-2 border-t border-gray-100 dark:border-gray-800 pt-3">
                 <button
                   onClick={() => onView(worker)}
-                  className="flex flex-1 justify-center items-center gap-1.5 rounded-lg border border-gray-200 px-2 sm:px-4 py-2 text-[13px] sm:text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-blue-600 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-blue-400 transition-colors"
+                  className="flex flex-1 justify-center items-center gap-1 rounded-lg border border-gray-200 px-1.5 sm:px-3 py-2 text-[12px] sm:text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-blue-600 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-blue-400 transition-colors"
                 >
-                  <Eye className="h-4 w-4" /> View
+                  <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> View
                 </button>
                 {isHRorAdmin && (
                   <button
                     onClick={() => onUpdateWorker(worker)}
-                    className="flex flex-1 justify-center items-center gap-1.5 rounded-lg border border-gray-200 px-2 sm:px-4 py-2 text-[13px] sm:text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-orange-600 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-orange-400 transition-colors"
+                    className="flex flex-1 justify-center items-center gap-1 rounded-lg border border-gray-200 px-1.5 sm:px-3 py-2 text-[12px] sm:text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-orange-600 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-orange-400 transition-colors"
                   >
-                    <UserCog className="h-4 w-4" /> Info
+                    <UserCog className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Info
                   </button>
                 )}
                 <button
                   onClick={() => onEdit(worker)}
-                  className="flex flex-1 justify-center items-center gap-1.5 rounded-lg bg-blue-50 px-2 sm:px-4 py-2 text-[13px] sm:text-sm font-medium text-blue-700 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors"
+                  className="flex flex-1 justify-center items-center gap-1 rounded-lg bg-blue-50 px-1.5 sm:px-3 py-2 text-[12px] sm:text-sm font-medium text-blue-700 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors"
                 >
-                  <Edit2 className="h-4 w-4" /> Action
+                  <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Action
                 </button>
+                {isHRorAdmin && (
+                  <button
+                    onClick={() => onDeleteWorker && onDeleteWorker(worker)}
+                    className="flex flex-1 justify-center items-center gap-1 rounded-lg border border-red-200 px-1.5 sm:px-3 py-2 text-[12px] sm:text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-900/20 transition-colors"
+                    title="Delete Worker"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Delete
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -298,6 +309,15 @@ export default function DailyWagersTable({
                     >
                       <Edit2 className="h-4 w-4" />
                     </button>
+                    {isHRorAdmin && (
+                      <button
+                        onClick={() => onDeleteWorker && onDeleteWorker(worker)}
+                        className="rounded p-1.5 text-gray-500 hover:bg-red-50 hover:text-red-600 dark:text-gray-400 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-colors"
+                        title="Delete Worker"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

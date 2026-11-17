@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { PlusCircle, Search, Calendar as CalendarIcon, RefreshCw, Users, Clock, IndianRupee, Building2, Download } from "lucide-react";
+import { PlusCircle, Search, Calendar as CalendarIcon, RefreshCw, Users, Clock, IndianRupee, Building2, Download, AlertCircle } from "lucide-react";
 import AddWorkerModal from "@/components/employees/AddWorkerModal";
 import EditWorkerModal from "@/components/employees/EditWorkerModal";
 import DailyWagersTable from "@/components/employees/DailyWagersTable";
@@ -18,8 +18,11 @@ export default function DailyWagersPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedWorkerForAction, setSelectedWorkerForAction] = useState(null);
   const [selectedWorkerForEdit, setSelectedWorkerForEdit] = useState(null);
+  const [selectedWorkerForDelete, setSelectedWorkerForDelete] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDate, setSelectedDate] = useState(() => 
     new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date())
@@ -84,6 +87,34 @@ export default function DailyWagersPage() {
 
   const handleViewWorker = (worker: any) => {
     router.push(`/dashboard/hr/daily-wagers/${worker._id}`);
+  };
+
+  const handleDeleteWorkerClick = (worker: any) => {
+    setSelectedWorkerForDelete(worker);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDeleteWorker = async () => {
+    if (!selectedWorkerForDelete) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/workers/${selectedWorkerForDelete._id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setIsDeleteModalOpen(false);
+        setSelectedWorkerForDelete(null);
+        setRefreshKey((prev) => prev + 1);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert(err.message || "Failed to delete daily wager");
+      }
+    } catch (err) {
+      console.error("Error deleting daily wager:", err);
+      alert("Network error while deleting daily wager");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleTogglePayment = async (worker: any) => {
@@ -346,6 +377,7 @@ export default function DailyWagersPage() {
         onUpdateWorker={handleUpdateWorkerClick}
         onView={handleViewWorker}
         onTogglePayment={handleTogglePayment}
+        onDeleteWorker={handleDeleteWorkerClick}
       />
 
       {/* Modals */}
@@ -367,6 +399,49 @@ export default function DailyWagersPage() {
         worker={selectedWorkerForAction}
         selectedDate={selectedDate}
       />
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && selectedWorkerForDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-800 dark:border dark:border-gray-700 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3 text-red-600 dark:text-red-400 mb-4">
+              <div className="rounded-full bg-red-100 p-2.5 dark:bg-red-900/30">
+                <AlertCircle className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Delete Daily Wager?</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">This action cannot be undone.</p>
+              </div>
+            </div>
+
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
+              Are you sure you want to permanently delete <strong className="text-gray-900 dark:text-white">{selectedWorkerForDelete.name}</strong> ({selectedWorkerForDelete.skill})? All associated timeline logs for this worker will also be removed.
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setSelectedWorkerForDelete(null);
+                }}
+                disabled={isDeleting}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteWorker}
+                disabled={isDeleting}
+                className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors disabled:opacity-50 shadow-sm"
+              >
+                {isDeleting ? "Deleting..." : "Delete Daily Wager"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

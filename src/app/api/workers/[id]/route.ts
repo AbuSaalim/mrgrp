@@ -140,3 +140,54 @@ export async function PUT(
     return NextResponse.json({ message: "Internal Server Error", error: error.message }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  request: Request,
+  context: { params: Promise<{ id: string }> | { id: string } }
+) {
+  try {
+    const user = await authenticate(request);
+    if (!user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+    const role = (user.role as string) || "";
+    const isHRorAdmin =
+      role.toUpperCase().includes("HR") ||
+      role.toUpperCase().includes("SUPER") ||
+      role.toUpperCase().includes("ADMIN");
+
+    if (!isHRorAdmin) {
+      return NextResponse.json(
+        { message: "Forbidden: Only HR and Super Admin can delete daily wagers" },
+        { status: 403 }
+      );
+    }
+
+    const resolvedParams = await context.params;
+    const workerId = resolvedParams.id;
+    if (!workerId) {
+      return NextResponse.json({ message: "Worker ID is required" }, { status: 400 });
+    }
+
+    await connectToDatabase();
+
+    const worker = await Worker.findById(workerId);
+    if (!worker) {
+      return NextResponse.json({ message: "Worker not found" }, { status: 404 });
+    }
+
+    // Delete worker and any associated daily wager logs
+    await Worker.findByIdAndDelete(workerId);
+    await DailyWagerLog.deleteMany({ workerId });
+
+    return NextResponse.json(
+      { message: "Daily wager deleted successfully" },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    console.error("DELETE Worker Error:", error);
+    return NextResponse.json(
+      { message: "Internal Server Error", error: error.message },
+      { status: 500 }
+    );
+  }
+}
